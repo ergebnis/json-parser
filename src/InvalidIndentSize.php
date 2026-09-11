@@ -13,22 +13,13 @@ declare(strict_types=1);
 
 namespace Ergebnis\Json\Parser;
 
-final class Example
+final class InvalidIndentSize extends \InvalidArgumentException implements Exception
 {
-    private string $value;
-
-    private function __construct(string $value)
+    public static function notGreaterThanZero(int $value): self
     {
-        $this->value = $value;
-    }
-
-    public static function fromString(string $value): self
-    {
-        return new self($value);
-    }
-
-    public function toString(): string
-    {
-        return $this->value;
+        return new self(\sprintf(
+            'Indent size %d must be greater than 0.',
+            $value,
+        ));
     }
 }

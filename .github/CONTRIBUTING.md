@@ -10,6 +10,18 @@ For details, take a look at the following workflow configuration files:
 - [`workflows/renew.yaml`](workflows/renew.yaml)
 - [`workflows/triage.yaml`](workflows/triage.yaml)
 
+## Benchmarks
+
+We use [`phpbench/phpbench`](https://github.com/phpbench/phpbench) to benchmark the parser, the printer, and the nodes, and to compare the parser and the printer with `json_decode()` and `json_encode()`.
+
+Disable `Xdebug` and run
+
+```sh
+make benchmarks
+```
+
+to run the benchmarks.
+
 ## Coding Standards
 
 We use [`ergebnis/composer-normalize`](https://github.com/ergebnis/composer-normalize) to normalize `composer.json`.

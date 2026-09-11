@@ -15,6 +15,7 @@ namespace Ergebnis\Json\Parser\Test\Util;
 
 use Faker\Factory;
 use Faker\Generator;
+use Symfony\Component\Filesystem;
 
 trait Helper
 {
@@ -34,5 +35,10 @@ trait Helper
         }
 
         return $fakers[$locale];
+    }
+
+    final protected static function fileSystem(): Filesystem\Filesystem
+    {
+        return new Filesystem\Filesystem();
     }
 }

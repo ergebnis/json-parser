@@ -1,3 +1,139 @@
 parameters:
-	ignoreErrors: []
+	ignoreErrors:
+		-
+			message: '#^Method Ergebnis\\Json\\Parser\\Traverser\\EnterAction\:\:replacement\(\) has a nullable return type declaration\.$#'
+			identifier: ergebnis.noNullableReturnTypeDeclaration
+			count: 1
+			path: src/Traverser/EnterAction.php
 
+		-
+			message: '#^Method Ergebnis\\Json\\Parser\\Traverser\\LeaveAction\:\:replacement\(\) has a nullable return type declaration\.$#'
+			identifier: ergebnis.noNullableReturnTypeDeclaration
+			count: 1
+			path: src/Traverser/LeaveAction.php
+
+		-
+			message: '#^Method Ergebnis\\Json\\Parser\\Traverser\\Path\:\:index\(\) has a nullable return type declaration\.$#'
+			identifier: ergebnis.noNullableReturnTypeDeclaration
+			count: 1
+			path: src/Traverser/Path.php
+
+		-
+			message: '#^Method Ergebnis\\Json\\Parser\\Traverser\\Path\:\:name\(\) has a nullable return type declaration\.$#'
+			identifier: ergebnis.noNullableReturnTypeDeclaration
+			count: 1
+			path: src/Traverser/Path.php
+
+		-
+			message: '#^Parameter \#1 \$value of static method Ergebnis\\Json\\Parser\\Column\:\:fromInt\(\) expects int\<1, max\>, int given\.$#'
+			identifier: argument.type
+			count: 2
+			path: test/Unit/ColumnTest.php
+
+		-
+			message: '#^Parameter \#1 \$value of static method Ergebnis\\Json\\Parser\\IndentSize\:\:fromInt\(\) expects int\<1, max\>, int given\.$#'
+			identifier: argument.type
+			count: 1
+			path: test/Unit/FormatTest.php
+
+		-
+			message: '#^Parameter \#1 \$value of static method Ergebnis\\Json\\Parser\\IndentSize\:\:fromInt\(\) expects int\<1, max\>, int given\.$#'
+			identifier: argument.type
+			count: 2
+			path: test/Unit/IndentSizeTest.php
+
+		-
+			message: '#^Parameter \#1 \$value of static method Ergebnis\\Json\\Parser\\IndentSize\:\:fromInt\(\) expects int\<1, max\>, int given\.$#'
+			identifier: argument.type
+			count: 5
+			path: test/Unit/IndentTest.php
+
+		-
+			message: '#^Parameter \#1 \$value of static method Ergebnis\\Json\\Parser\\Index\:\:fromInt\(\) expects int\<0, max\>, int given\.$#'
+			identifier: argument.type
+			count: 2
+			path: test/Unit/IndexTest.php
+
+		-
+			message: '#^Parameter \#1 \$value of static method Ergebnis\\Json\\Parser\\Column\:\:fromInt\(\) expects int\<1, max\>, int given\.$#'
+			identifier: argument.type
+			count: 27
+			path: test/Unit/InvalidJsonTest.php
+
+		-
+			message: '#^Parameter \#1 \$value of static method Ergebnis\\Json\\Parser\\Line\:\:fromInt\(\) expects int\<1, max\>, int given\.$#'
+			identifier: argument.type
+			count: 27
+			path: test/Unit/InvalidJsonTest.php
+
+		-
+			message: '#^Parameter \#1 \$value of static method Ergebnis\\Json\\Parser\\MaximumDepth\:\:fromInt\(\) expects int\<1, 4096\>, int given\.$#'
+			identifier: argument.type
+			count: 1
+			path: test/Unit/InvalidJsonTest.php
+
+		-
+			message: '#^Parameter \#1 \$value of static method Ergebnis\\Json\\Parser\\Offset\:\:fromInt\(\) expects int\<0, max\>, int given\.$#'
+			identifier: argument.type
+			count: 27
+			path: test/Unit/InvalidJsonTest.php
+
+		-
+			message: '#^Parameter \#1 \$value of static method Ergebnis\\Json\\Parser\\Line\:\:fromInt\(\) expects int\<1, max\>, int given\.$#'
+			identifier: argument.type
+			count: 2
+			path: test/Unit/LineTest.php
+
+		-
+			message: '#^Parameter \#1 \$value of static method Ergebnis\\Json\\Parser\\MaximumDepth\:\:fromInt\(\) expects int\<1, 4096\>, int given\.$#'
+			identifier: argument.type
+			count: 3
+			path: test/Unit/MaximumDepthTest.php
+
+		-
+			message: '#^Parameter \#1 \$value of static method Ergebnis\\Json\\Parser\\Index\:\:fromInt\(\) expects int\<0, max\>, int given\.$#'
+			identifier: argument.type
+			count: 1
+			path: test/Unit/Node/ElementDoesNotExistTest.php
+
+		-
+			message: '#^Parameter \#1 \$value of static method Ergebnis\\Json\\Parser\\Index\:\:fromInt\(\) expects int\<0, max\>, int given\.$#'
+			identifier: argument.type
+			count: 1
+			path: test/Unit/Node/PropertyDoesNotExistTest.php
+
+		-
+			message: '#^Parameter \#1 \$value of static method Ergebnis\\Json\\Parser\\Offset\:\:fromInt\(\) expects int\<0, max\>, int given\.$#'
+			identifier: argument.type
+			count: 2
+			path: test/Unit/OffsetTest.php
+
+		-
+			message: '#^Parameter \#1 \$value of static method Ergebnis\\Json\\Parser\\MaximumDepth\:\:fromInt\(\) expects int\<1, 4096\>, int given\.$#'
+			identifier: argument.type
+			count: 5
+			path: test/Unit/ParserTest.php
+
+		-
+			message: '#^Parameter \#1 \$value of static method Ergebnis\\Json\\Parser\\Column\:\:fromInt\(\) expects int\<1, max\>, int given\.$#'
+			identifier: argument.type
+			count: 1
+			path: test/Unit/PositionTest.php
+
+		-
+			message: '#^Parameter \#1 \$value of static method Ergebnis\\Json\\Parser\\Line\:\:fromInt\(\) expects int\<1, max\>, int given\.$#'
+			identifier: argument.type
+			count: 1
+			path: test/Unit/PositionTest.php
+
+		-
+			message: '#^Parameter \#1 \$value of static method Ergebnis\\Json\\Parser\\Offset\:\:fromInt\(\) expects int\<0, max\>, int given\.$#'
+			identifier: argument.type
+			count: 1
+			path: test/Unit/PositionTest.php
+
+		-
+			message: '#^Parameter \#1 \$value of static method Ergebnis\\Json\\Parser\\Index\:\:fromInt\(\) expects int\<0, max\>, int given\.$#'
+			identifier: argument.type
+			count: 6
+			path: test/Unit/Traverser/PathTest.php

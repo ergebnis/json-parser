@@ -11,6 +11,61 @@ on: # yamllint disable-line rule:truthy
 permissions: {}
 
 jobs:
+  benchmarks:
+    name: "Benchmarks"
+
+    permissions:
+      contents: "read"
+
+    runs-on: "ubuntu-latest"
+
+    timeout-minutes: 5
+
+    strategy:
+      matrix:
+        php-version:
+          - "7.4"
+
+        dependencies:
+          - "locked"
+
+    steps:
+      - name: "Checkout"
+        uses: "actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1" # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: "Set up PHP"
+        uses: "shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240" # 2.37.2
+        with:
+          coverage: "none"
+          extensions: "none, bcmath, ctype, curl, dom, iconv, intl, json, mbstring, phar, simplexml, tokenizer, xml, xmlwriter"
+          php-version: "${{ matrix.php-version }}"
+
+      - name: "Set up problem matchers for PHP"
+        run: "echo \"::add-matcher::${{ runner.tool_cache }}/php.json\""
+
+      - name: "Validate composer.json and composer.lock"
+        run: "composer validate --ansi --strict"
+
+      - name: "Determine composer cache directory"
+        uses: "ergebnis/.github/actions/composer/determine-cache-directory@f5048b197f24b30496f4989821523d688959fbc3" # 1.13.1
+
+      - name: "Cache dependencies installed with composer"
+        uses: "actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9" # v6.1.0
+        with:
+          path: "${{ env.COMPOSER_CACHE_DIR }}"
+          key: "php-${{ matrix.php-version }}-composer-${{ matrix.dependencies }}-${{ hashFiles('composer.lock') }}"
+          restore-keys: "php-${{ matrix.php-version }}-composer-${{ matrix.dependencies }}-"
+
+      - name: "Install ${{ matrix.dependencies }} dependencies with composer"
+        uses: "ergebnis/.github/actions/composer/install@f5048b197f24b30496f4989821523d688959fbc3" # 1.13.1
+        with:
+          dependencies: "${{ matrix.dependencies }}"
+
+      - name: "Run benchmarks with phpbench/phpbench"
+        run: "vendor/bin/phpbench run --ansi --config=phpbench.json --iterations=1 --report=comparison --revs=1"
+
   code-coverage:
     name: "Code Coverage"
 
