@@ -29,7 +29,6 @@ return static function (Config\RectorConfig $rectorConfig): void {
     $rectorConfig->phpVersion(ValueObject\PhpVersion::PHP_74);
 
     $rectorConfig->rules([
-        Rector\Rules\Expressions\Arrays\SortAssociativeArrayByKeyRector::class,
         Rector\Rules\Expressions\CallLikes\RemoveNamedArgumentForSingleParameterRector::class,
         Rector\Rules\Expressions\Matches\SortMatchArmsByConditionalRector::class,
         Rector\Rules\Faker\GeneratorPropertyFetchToMethodCallRector::class,
@@ -40,6 +39,7 @@ return static function (Config\RectorConfig $rectorConfig): void {
         'discoverNamespacePrefixes' => true,
         'parentNamespacePrefixes' => [
             'Ergebnis\Json\Parser',
+            'Symfony\Component',
         ],
     ]);
 

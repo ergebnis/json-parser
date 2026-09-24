@@ -6,6 +6,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## Unreleased
 
-For a full diff see [`1902cc2...main`][1902cc2...main].
+For a full diff see [`5a24e62...main`][5a24e62...main].
 
-[1902cc2...main]: https://github.com/ergebnis/json-parser/compare/1902cc2...main
+### Added
+
+- Added `Parser`, `Printer`, `Traverser`, and `Visitor` ([#1]), by [@localheinz]
+
+[5a24e62...main]: https://github.com/ergebnis/json-parser/compare/5a24e62...main
+
+[#1]: https://github.com/ergebnis/json-parser/pull/1
+
+[@localheinz]: https://github.com/localheinz

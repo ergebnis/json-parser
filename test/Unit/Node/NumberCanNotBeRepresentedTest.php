@@ -1,0 +1,56 @@
+<?php
+
+declare(strict_types=1);
+
+/**
+ * Copyright (c) 2026 Andreas Möller
+ *
+ * For the full copyright and license information, please view
+ * the LICENSE.md file that was distributed with this source code.
+ *
+ * @see https://github.com/ergebnis/json-parser
+ */
+
+namespace Ergebnis\Json\Parser\Test\Unit\Node;
+
+use Ergebnis\Json\Parser\Node;
+use Ergebnis\Json\Parser\Test;
+use PHPUnit\Framework;
+
+/**
+ * @covers \Ergebnis\Json\Parser\Node\NumberCanNotBeRepresented
+ *
+ * @uses \Ergebnis\Json\Parser\Node\NumberNode
+ */
+final class NumberCanNotBeRepresentedTest extends Framework\TestCase
+{
+    use Test\Util\Helper;
+
+    public function testAsIntReturnsNumberCanNotBeRepresented(): void
+    {
+        $node = Node\NumberNode::fromFloat(self::faker()->randomFloat());
+
+        $exception = Node\NumberCanNotBeRepresented::asInt($node);
+
+        $message = \sprintf(
+            '"%s" can not be represented as an int.',
+            $node->raw(),
+        );
+
+        self::assertSame($message, $exception->getMessage());
+    }
+
+    public function testAsFloatReturnsNumberCanNotBeRepresented(): void
+    {
+        $node = Node\NumberNode::fromFloat(self::faker()->randomFloat());
+
+        $exception = Node\NumberCanNotBeRepresented::asFloat($node);
+
+        $message = \sprintf(
+            '"%s" can not be represented as a float.',
+            $node->raw(),
+        );
+
+        self::assertSame($message, $exception->getMessage());
+    }
+}
