@@ -22,7 +22,6 @@
     "ergebnis/json-pointer": "^3.8.0"
   },
   "require-dev": {
-    "ergebnis/composer-normalize": "^2.53.0",
     "ergebnis/data-provider": "^3.6.0",
     "ergebnis/license": "^2.7.0",
     "ergebnis/php-cs-fixer-config": "^6.63.2",
@@ -54,7 +53,6 @@
   "config": {
     "allow-plugins": {
       "composer/package-versions-deprecated": true,
-      "ergebnis/composer-normalize": true,
       "infection/extension-installer": true,
       "phpstan/extension-installer": true
     },
