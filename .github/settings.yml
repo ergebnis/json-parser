@@ -91,7 +91,7 @@ repository:
   archived: false
   default_branch: "main"
   delete_branch_on_merge: true
-  description: "📃 Provides a composer package with a JSON parser."
+  description: "📃 Provides a JSON parser producing an abstract syntax tree that keeps raw strings, numbers, and duplicate property names, with a printer and a traverser."
   enable_automated_security_fixes: true
   enable_vulnerability_alerts: true
   has_discussions: false
