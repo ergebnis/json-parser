@@ -22,7 +22,7 @@
     "ergebnis/json-pointer": "^3.8.0"
   },
   "require-dev": {
-    "ergebnis/data-provider": "^3.6.0",
+    "ergebnis/data-provider": "^3.7.0",
     "ergebnis/license": "^2.7.0",
     "ergebnis/php-cs-fixer-config": "^6.63.3",
     "ergebnis/phpstan-rules": "^2.13.1",
