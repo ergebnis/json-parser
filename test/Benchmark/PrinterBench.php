@@ -24,7 +24,6 @@ use Ergebnis\Json\Parser\Node;
 use Ergebnis\Json\Parser\Parser;
 use Ergebnis\Json\Parser\Printer;
 use Ergebnis\Json\Parser\Raw;
-use Ergebnis\Json\Parser\Test;
 
 final class PrinterBench
 {
@@ -41,7 +40,7 @@ final class PrinterBench
         $parser = new Parser();
 
         $this->node = $parser->parse(
-            Raw::fromString(Test\Benchmark\Fixture::json($parameters['fixture'])),
+            Raw::fromString(Fixture::json($parameters['fixture'])),
             MaximumDepth::fromInt(4096),
         );
 
