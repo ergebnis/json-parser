@@ -13,8 +13,6 @@ declare(strict_types=1);
 
 namespace Ergebnis\Json\Parser\Test\Benchmark;
 
-use Ergebnis\Json\Parser\Test;
-
 final class JsonEncodeBench
 {
     /**
@@ -28,7 +26,7 @@ final class JsonEncodeBench
     public function setUp(array $parameters): void
     {
         $this->data = \json_decode(
-            Test\Benchmark\Fixture::json($parameters['fixture']),
+            Fixture::json($parameters['fixture']),
             false,
             4096,
             \JSON_THROW_ON_ERROR,
