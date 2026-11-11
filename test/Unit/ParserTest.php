@@ -1704,6 +1704,22 @@ final class ParserTest extends Framework\TestCase
         );
     }
 
+    public function testParseThrowsInvalidJsonForMalformedUtf8OutsideOfStringAfterString(): void
+    {
+        $raw = Raw::fromString("[\"\xC3\xA9\", \xFF]");
+        $maximumDepth = MaximumDepth::default();
+
+        $parser = new Parser\Parser();
+
+        $this->expectException(InvalidJson::class);
+        $this->expectExceptionMessage('Unexpected character "\\xFF" at line 1, column 7.');
+
+        $parser->parse(
+            $raw,
+            $maximumDepth,
+        );
+    }
+
     public function testParseThrowsInvalidJsonForInvalidCharacter(): void
     {
         $raw = Raw::fromString('&');
