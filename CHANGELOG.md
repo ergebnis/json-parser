@@ -11,6 +11,7 @@ For a full diff see [`5a24e62...main`][5a24e62...main].
 ### Added
 
 - Added `Parser`, `Printer`, `Traverser`, and `Visitor` ([#1]), by [@localheinz]
+- Added support for PHP 8.6 ([#57]), by [@localheinz]
 
 ### Changed
 - Allowed installation on PHP 8.6 ([#18]), by [@localheinz]
@@ -19,5 +20,6 @@ For a full diff see [`5a24e62...main`][5a24e62...main].
 
 [#1]: https://github.com/ergebnis/json-parser/pull/1
 [#18]: https://github.com/ergebnis/json-parser/pull/18
+[#57]: https://github.com/ergebnis/json-parser/pull/57
 
 [@localheinz]: https://github.com/localheinz
