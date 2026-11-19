@@ -272,6 +272,18 @@ final class Parser
         ++$this->offset;
 
         while ($this->offset < $this->length) {
+            $length = \strcspn(
+                $this->json,
+                "\"\\\x00\x01\x02\x03\x04\x05\x06\x07\x08\x09\x0A\x0B\x0C\x0D\x0E\x0F\x10\x11\x12\x13\x14\x15\x16\x17\x18\x19\x1A\x1B\x1C\x1D\x1E\x1F",
+                $this->offset,
+            );
+
+            if (0 < $length) {
+                $this->consumeCharacters($length);
+
+                continue;
+            }
+
             $char = $this->json[$this->offset];
 
             if ('"' === $char) {
@@ -286,13 +298,46 @@ final class Parser
                 continue;
             }
 
-            $byte = \ord($char);
+            throw InvalidJson::unescapedControlCharacterAt($this->positionAt($this->offset));
+        }
 
-            if (0x20 > $byte) {
-                throw InvalidJson::unescapedControlCharacterAt($this->positionAt($this->offset));
-            }
+        throw InvalidJson::unterminatedStringAt($this->positionAt($this->offset));
+    }
 
-            if (0x80 > $byte) {
+    /**
+     * @see https://datatracker.ietf.org/doc/html/rfc3629#section-4
+     *
+     * @param positive-int $length
+     *
+     * @throws InvalidJson
+     */
+    private function consumeCharacters(int $length): void
+    {
+        $characters = \substr(
+            $this->json,
+            $this->offset,
+            $length,
+        );
+
+        $isValidUtf8 = \preg_match(
+            '//u',
+            $characters,
+        );
+
+        if (false === $isValidUtf8) {
+            $this->consumeCharactersUntilMalformedUtf8();
+        }
+
+        $this->offset += $length;
+    }
+
+    /**
+     * @throws InvalidJson
+     */
+    private function consumeCharactersUntilMalformedUtf8(): void
+    {
+        while ($this->offset < $this->length) {
+            if (0x80 > \ord($this->json[$this->offset])) {
                 ++$this->offset;
 
                 continue;
@@ -300,8 +345,6 @@ final class Parser
 
             $this->consumeMultibyteCharacter();
         }
-
-        throw InvalidJson::unterminatedStringAt($this->positionAt($this->offset));
     }
 
     /**
