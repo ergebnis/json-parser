@@ -15,11 +15,13 @@ For a full diff see [`5a24e62...main`][5a24e62...main].
 
 ### Changed
 - Allowed installation on PHP 8.6 ([#18]), by [@localheinz]
+- Allowed installation on PHP 8.7 ([#66]), by [@localheinz]
 
 [5a24e62...main]: https://github.com/ergebnis/json-parser/compare/5a24e62...main
 
 [#1]: https://github.com/ergebnis/json-parser/pull/1
 [#18]: https://github.com/ergebnis/json-parser/pull/18
 [#57]: https://github.com/ergebnis/json-parser/pull/57
+[#66]: https://github.com/ergebnis/json-parser/pull/66
 
 [@localheinz]: https://github.com/localheinz
