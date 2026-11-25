@@ -653,12 +653,12 @@ final class PrinterTest extends Framework\TestCase
         );
 
         $expected = <<<'JSON'
-[
-    1,
-    "two",
-    null
-]
-JSON;
+            [
+                1,
+                "two",
+                null
+            ]
+            JSON;
 
         self::assertSame($expected, $printed);
     }
@@ -720,12 +720,12 @@ JSON;
         );
 
         $expected = <<<'JSON'
-{
-    "name": "test",
-    "a\/b": null,
-    "name": 4
-}
-JSON;
+            {
+                "name": "test",
+                "a\/b": null,
+                "name": 4
+            }
+            JSON;
 
         self::assertSame($expected, $printed);
     }
