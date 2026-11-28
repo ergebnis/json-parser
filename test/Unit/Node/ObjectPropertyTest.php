@@ -13,8 +13,7 @@ declare(strict_types=1);
 
 namespace Ergebnis\Json\Parser\Test\Unit\Node;
 
-use Ergebnis\Json\Parser\Node;
-use Ergebnis\Json\Parser\Test;
+use Ergebnis\Json\Parser;
 use PHPUnit\Framework;
 
 /**
@@ -25,14 +24,14 @@ use PHPUnit\Framework;
  */
 final class ObjectPropertyTest extends Framework\TestCase
 {
-    use Test\Util\Helper;
+    use Parser\Test\Util\Helper;
 
     public function testCreateReturnsObjectProperty(): void
     {
-        $name = Node\StringNode::fromString(self::faker()->word());
-        $value = Node\NullNode::create();
+        $name = Parser\Node\StringNode::fromString(self::faker()->word());
+        $value = Parser\Node\NullNode::create();
 
-        $property = Node\ObjectProperty::create(
+        $property = Parser\Node\ObjectProperty::create(
             $name,
             $value,
         );

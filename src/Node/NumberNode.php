@@ -13,8 +13,7 @@ declare(strict_types=1);
 
 namespace Ergebnis\Json\Parser\Node;
 
-use Ergebnis\Json\Parser\InvalidNumber;
-use Ergebnis\Json\Parser\Raw;
+use Ergebnis\Json\Parser;
 
 /**
  * @see https://datatracker.ietf.org/doc/html/rfc8259#section-6
@@ -29,9 +28,9 @@ final class NumberNode implements Node
     }
 
     /**
-     * @throws InvalidNumber
+     * @throws Parser\InvalidNumber
      */
-    public static function fromRaw(Raw $raw): self
+    public static function fromRaw(Parser\Raw $raw): self
     {
         $value = $raw->toString();
 
@@ -47,7 +46,7 @@ final class NumberNode implements Node
             EOD;
 
         if (1 !== \preg_match($pattern, $value)) {
-            throw InvalidNumber::notValidJsonNumber($raw);
+            throw Parser\InvalidNumber::notValidJsonNumber($raw);
         }
 
         return new self($value);
@@ -67,12 +66,12 @@ final class NumberNode implements Node
     }
 
     /**
-     * @throws InvalidNumber
+     * @throws Parser\InvalidNumber
      */
     public static function fromFloat(float $value): self
     {
         if (!\is_finite($value)) {
-            throw InvalidNumber::notFinite($value);
+            throw Parser\InvalidNumber::notFinite($value);
         }
 
         $sign = '';

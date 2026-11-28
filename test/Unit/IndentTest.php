@@ -13,10 +13,7 @@ declare(strict_types=1);
 
 namespace Ergebnis\Json\Parser\Test\Unit;
 
-use Ergebnis\Json\Parser\Indent;
-use Ergebnis\Json\Parser\IndentSize;
-use Ergebnis\Json\Parser\IndentStyle;
-use Ergebnis\Json\Parser\Test;
+use Ergebnis\Json\Parser;
 use PHPUnit\Framework;
 
 /**
@@ -27,11 +24,11 @@ use PHPUnit\Framework;
  */
 final class IndentTest extends Framework\TestCase
 {
-    use Test\Util\Helper;
+    use Parser\Test\Util\Helper;
 
     public function testNoneReturnsIndent(): void
     {
-        $indent = Indent::none();
+        $indent = Parser\Indent::none();
 
         self::assertSame('', $indent->toString());
     }
@@ -40,12 +37,12 @@ final class IndentTest extends Framework\TestCase
      * @dataProvider provideStyleAndCharacter
      */
     public function testCreateReturnsIndent(
-        IndentStyle $style,
+        Parser\IndentStyle $style,
         string $character
     ): void {
-        $size = IndentSize::fromInt(self::faker()->numberBetween(1, 8));
+        $size = Parser\IndentSize::fromInt(self::faker()->numberBetween(1, 8));
 
-        $indent = Indent::create(
+        $indent = Parser\Indent::create(
             $size,
             $style,
         );
@@ -59,17 +56,17 @@ final class IndentTest extends Framework\TestCase
     }
 
     /**
-     * @return \Generator<string, array{0: IndentStyle, 1: string}>
+     * @return \Generator<string, array{0: Parser\IndentStyle, 1: string}>
      */
     public static function provideStyleAndCharacter(): iterable
     {
         $values = [
             'space' => [
-                IndentStyle::space(),
+                Parser\IndentStyle::space(),
                 ' ',
             ],
             'tab' => [
-                IndentStyle::tab(),
+                Parser\IndentStyle::tab(),
                 "\t",
             ],
         ];
@@ -86,14 +83,14 @@ final class IndentTest extends Framework\TestCase
     {
         $size = self::faker()->numberBetween(1, 8);
 
-        $one = Indent::create(
-            IndentSize::fromInt($size),
-            IndentStyle::space(),
+        $one = Parser\Indent::create(
+            Parser\IndentSize::fromInt($size),
+            Parser\IndentStyle::space(),
         );
 
-        $two = Indent::create(
-            IndentSize::fromInt($size + 1),
-            IndentStyle::space(),
+        $two = Parser\Indent::create(
+            Parser\IndentSize::fromInt($size + 1),
+            Parser\IndentStyle::space(),
         );
 
         self::assertFalse($one->equals($two));
@@ -103,14 +100,14 @@ final class IndentTest extends Framework\TestCase
     {
         $size = self::faker()->numberBetween(1, 8);
 
-        $one = Indent::create(
-            IndentSize::fromInt($size),
-            IndentStyle::space(),
+        $one = Parser\Indent::create(
+            Parser\IndentSize::fromInt($size),
+            Parser\IndentStyle::space(),
         );
 
-        $two = Indent::create(
-            IndentSize::fromInt($size),
-            IndentStyle::space(),
+        $two = Parser\Indent::create(
+            Parser\IndentSize::fromInt($size),
+            Parser\IndentStyle::space(),
         );
 
         self::assertTrue($one->equals($two));

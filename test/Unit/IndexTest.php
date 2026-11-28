@@ -13,8 +13,7 @@ declare(strict_types=1);
 
 namespace Ergebnis\Json\Parser\Test\Unit;
 
-use Ergebnis\Json\Parser\Index;
-use Ergebnis\Json\Parser\InvalidIndex;
+use Ergebnis\Json\Parser;
 use PHPUnit\Framework;
 
 /**
@@ -29,9 +28,9 @@ final class IndexTest extends Framework\TestCase
      */
     public function testFromIntThrowsInvalidIndexWhenValueIsNegative(int $value): void
     {
-        $this->expectException(InvalidIndex::class);
+        $this->expectException(Parser\InvalidIndex::class);
 
-        Index::fromInt($value);
+        Parser\Index::fromInt($value);
     }
 
     /**
@@ -40,7 +39,7 @@ final class IndexTest extends Framework\TestCase
      */
     public function testFromIntReturnsIndexWhenValueIsNotNegative(int $value): void
     {
-        $index = Index::fromInt($value);
+        $index = Parser\Index::fromInt($value);
 
         self::assertSame($value, $index->toInt());
     }

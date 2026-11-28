@@ -13,47 +13,37 @@ declare(strict_types=1);
 
 namespace Ergebnis\Json\Parser\Test\Benchmark;
 
-use Ergebnis\Json\Parser\FinalNewLine;
-use Ergebnis\Json\Parser\Format;
-use Ergebnis\Json\Parser\Indent;
-use Ergebnis\Json\Parser\IndentSize;
-use Ergebnis\Json\Parser\IndentStyle;
-use Ergebnis\Json\Parser\MaximumDepth;
-use Ergebnis\Json\Parser\NewLine;
-use Ergebnis\Json\Parser\Node;
-use Ergebnis\Json\Parser\Parser;
-use Ergebnis\Json\Parser\Printer;
-use Ergebnis\Json\Parser\Raw;
+use Ergebnis\Json\Parser;
 
 final class PrinterBench
 {
-    private Format $compactFormat;
-    private Node\Node $node;
-    private Format $prettyFormat;
-    private Printer $printer;
+    private Parser\Format $compactFormat;
+    private Parser\Node\Node $node;
+    private Parser\Format $prettyFormat;
+    private Parser\Printer $printer;
 
     /**
      * @param array{fixture: string} $parameters
      */
     public function setUp(array $parameters): void
     {
-        $parser = new Parser();
+        $parser = new Parser\Parser();
 
         $this->node = $parser->parse(
-            Raw::fromString(Fixture::json($parameters['fixture'])),
-            MaximumDepth::fromInt(4096),
+            Parser\Raw::fromString(Fixture::json($parameters['fixture'])),
+            Parser\MaximumDepth::fromInt(4096),
         );
 
-        $this->compactFormat = Format::compact();
-        $this->prettyFormat = Format::create(
-            Indent::create(
-                IndentSize::fromInt(4),
-                IndentStyle::space(),
+        $this->compactFormat = Parser\Format::compact();
+        $this->prettyFormat = Parser\Format::create(
+            Parser\Indent::create(
+                Parser\IndentSize::fromInt(4),
+                Parser\IndentStyle::space(),
             ),
-            NewLine::lf(),
-            FinalNewLine::none(),
+            Parser\NewLine::lf(),
+            Parser\FinalNewLine::none(),
         );
-        $this->printer = new Printer();
+        $this->printer = new Parser\Printer();
     }
 
     /**

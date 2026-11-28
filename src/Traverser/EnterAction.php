@@ -13,7 +13,7 @@ declare(strict_types=1);
 
 namespace Ergebnis\Json\Parser\Traverser;
 
-use Ergebnis\Json\Parser\Node;
+use Ergebnis\Json\Parser;
 
 final class EnterAction
 {
@@ -21,7 +21,7 @@ final class EnterAction
     private static ?self $remove = null;
     private static ?self $skipChildren = null;
     private string $type;
-    private ?Node\Node $node = null;
+    private ?Parser\Node\Node $node = null;
 
     private function __construct(string $type)
     {
@@ -46,7 +46,7 @@ final class EnterAction
         return self::$remove;
     }
 
-    public static function replace(Node\Node $node): self
+    public static function replace(Parser\Node\Node $node): self
     {
         $action = new self('replace');
 
@@ -83,7 +83,7 @@ final class EnterAction
     /**
      * @internal
      */
-    public function replacement(): ?Node\Node
+    public function replacement(): ?Parser\Node\Node
     {
         return $this->node;
     }

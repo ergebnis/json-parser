@@ -13,14 +13,7 @@ declare(strict_types=1);
 
 namespace Ergebnis\Json\Parser\Test\Unit;
 
-use Ergebnis\Json\Parser\Bytes;
-use Ergebnis\Json\Parser\Column;
-use Ergebnis\Json\Parser\InvalidJson;
-use Ergebnis\Json\Parser\Line;
-use Ergebnis\Json\Parser\MaximumDepth;
-use Ergebnis\Json\Parser\Offset;
-use Ergebnis\Json\Parser\Position;
-use Ergebnis\Json\Parser\Test;
+use Ergebnis\Json\Parser;
 use PHPUnit\Framework;
 
 /**
@@ -35,19 +28,19 @@ use PHPUnit\Framework;
  */
 final class InvalidJsonTest extends Framework\TestCase
 {
-    use Test\Util\Helper;
+    use Parser\Test\Util\Helper;
 
     public function testExpectedBooleanAtReturnsInvalidJson(): void
     {
         $faker = self::faker();
 
-        $position = Position::create(
-            Offset::fromInt($faker->numberBetween(0, 100)),
-            Line::fromInt($faker->numberBetween(1, 100)),
-            Column::fromInt($faker->numberBetween(1, 100)),
+        $position = Parser\Position::create(
+            Parser\Offset::fromInt($faker->numberBetween(0, 100)),
+            Parser\Line::fromInt($faker->numberBetween(1, 100)),
+            Parser\Column::fromInt($faker->numberBetween(1, 100)),
         );
 
-        $exception = InvalidJson::expectedBooleanAt($position);
+        $exception = Parser\InvalidJson::expectedBooleanAt($position);
 
         $message = \sprintf(
             'Expected "true" or "false" at line %d, column %d.',
@@ -63,13 +56,13 @@ final class InvalidJsonTest extends Framework\TestCase
     {
         $faker = self::faker();
 
-        $position = Position::create(
-            Offset::fromInt($faker->numberBetween(0, 100)),
-            Line::fromInt($faker->numberBetween(1, 100)),
-            Column::fromInt($faker->numberBetween(1, 100)),
+        $position = Parser\Position::create(
+            Parser\Offset::fromInt($faker->numberBetween(0, 100)),
+            Parser\Line::fromInt($faker->numberBetween(1, 100)),
+            Parser\Column::fromInt($faker->numberBetween(1, 100)),
         );
 
-        $exception = InvalidJson::expectedColonAt($position);
+        $exception = Parser\InvalidJson::expectedColonAt($position);
 
         $message = \sprintf(
             'Expected ":" at line %d, column %d.',
@@ -85,13 +78,13 @@ final class InvalidJsonTest extends Framework\TestCase
     {
         $faker = self::faker();
 
-        $position = Position::create(
-            Offset::fromInt($faker->numberBetween(0, 100)),
-            Line::fromInt($faker->numberBetween(1, 100)),
-            Column::fromInt($faker->numberBetween(1, 100)),
+        $position = Parser\Position::create(
+            Parser\Offset::fromInt($faker->numberBetween(0, 100)),
+            Parser\Line::fromInt($faker->numberBetween(1, 100)),
+            Parser\Column::fromInt($faker->numberBetween(1, 100)),
         );
 
-        $exception = InvalidJson::expectedCommaOrClosingBraceAt($position);
+        $exception = Parser\InvalidJson::expectedCommaOrClosingBraceAt($position);
 
         $message = \sprintf(
             'Expected "," or "}" at line %d, column %d.',
@@ -107,13 +100,13 @@ final class InvalidJsonTest extends Framework\TestCase
     {
         $faker = self::faker();
 
-        $position = Position::create(
-            Offset::fromInt($faker->numberBetween(0, 100)),
-            Line::fromInt($faker->numberBetween(1, 100)),
-            Column::fromInt($faker->numberBetween(1, 100)),
+        $position = Parser\Position::create(
+            Parser\Offset::fromInt($faker->numberBetween(0, 100)),
+            Parser\Line::fromInt($faker->numberBetween(1, 100)),
+            Parser\Column::fromInt($faker->numberBetween(1, 100)),
         );
 
-        $exception = InvalidJson::expectedCommaOrClosingBracketAt($position);
+        $exception = Parser\InvalidJson::expectedCommaOrClosingBracketAt($position);
 
         $message = \sprintf(
             'Expected "," or "]" at line %d, column %d.',
@@ -129,13 +122,13 @@ final class InvalidJsonTest extends Framework\TestCase
     {
         $faker = self::faker();
 
-        $position = Position::create(
-            Offset::fromInt($faker->numberBetween(0, 100)),
-            Line::fromInt($faker->numberBetween(1, 100)),
-            Column::fromInt($faker->numberBetween(1, 100)),
+        $position = Parser\Position::create(
+            Parser\Offset::fromInt($faker->numberBetween(0, 100)),
+            Parser\Line::fromInt($faker->numberBetween(1, 100)),
+            Parser\Column::fromInt($faker->numberBetween(1, 100)),
         );
 
-        $exception = InvalidJson::expectedNullAt($position);
+        $exception = Parser\InvalidJson::expectedNullAt($position);
 
         $message = \sprintf(
             'Expected "null" at line %d, column %d.',
@@ -151,13 +144,13 @@ final class InvalidJsonTest extends Framework\TestCase
     {
         $faker = self::faker();
 
-        $position = Position::create(
-            Offset::fromInt($faker->numberBetween(0, 100)),
-            Line::fromInt($faker->numberBetween(1, 100)),
-            Column::fromInt($faker->numberBetween(1, 100)),
+        $position = Parser\Position::create(
+            Parser\Offset::fromInt($faker->numberBetween(0, 100)),
+            Parser\Line::fromInt($faker->numberBetween(1, 100)),
+            Parser\Column::fromInt($faker->numberBetween(1, 100)),
         );
 
-        $exception = InvalidJson::expectedPropertyNameAt($position);
+        $exception = Parser\InvalidJson::expectedPropertyNameAt($position);
 
         $message = \sprintf(
             'Expected property name at line %d, column %d.',
@@ -176,14 +169,14 @@ final class InvalidJsonTest extends Framework\TestCase
     {
         $faker = self::faker();
 
-        $position = Position::create(
-            Offset::fromInt($faker->numberBetween(0, 100)),
-            Line::fromInt($faker->numberBetween(1, 100)),
-            Column::fromInt($faker->numberBetween(1, 100)),
+        $position = Parser\Position::create(
+            Parser\Offset::fromInt($faker->numberBetween(0, 100)),
+            Parser\Line::fromInt($faker->numberBetween(1, 100)),
+            Parser\Column::fromInt($faker->numberBetween(1, 100)),
         );
 
-        $exception = InvalidJson::invalidEscapeSequenceAt(
-            Bytes::fromString($character),
+        $exception = Parser\InvalidJson::invalidEscapeSequenceAt(
+            Parser\Bytes::fromString($character),
             $position,
         );
 
@@ -207,14 +200,14 @@ final class InvalidJsonTest extends Framework\TestCase
     ): void {
         $faker = self::faker();
 
-        $position = Position::create(
-            Offset::fromInt($faker->numberBetween(0, 100)),
-            Line::fromInt($faker->numberBetween(1, 100)),
-            Column::fromInt($faker->numberBetween(1, 100)),
+        $position = Parser\Position::create(
+            Parser\Offset::fromInt($faker->numberBetween(0, 100)),
+            Parser\Line::fromInt($faker->numberBetween(1, 100)),
+            Parser\Column::fromInt($faker->numberBetween(1, 100)),
         );
 
-        $exception = InvalidJson::invalidEscapeSequenceAt(
-            Bytes::fromString($character),
+        $exception = Parser\InvalidJson::invalidEscapeSequenceAt(
+            Parser\Bytes::fromString($character),
             $position,
         );
 
@@ -235,14 +228,6 @@ final class InvalidJsonTest extends Framework\TestCase
     public static function provideNotPrintableCharacterAndEscapedCharacter(): iterable
     {
         $values = [
-            'null' => [
-                "\x00",
-                '\x00',
-            ],
-            'unit-separator' => [
-                "\x1F",
-                '\x1F',
-            ],
             'delete' => [
                 "\x7F",
                 '\x7F',
@@ -254,6 +239,14 @@ final class InvalidJsonTest extends Framework\TestCase
             'last-byte' => [
                 "\xFF",
                 '\xFF',
+            ],
+            'null' => [
+                "\x00",
+                '\x00',
+            ],
+            'unit-separator' => [
+                "\x1F",
+                '\x1F',
             ],
         ];
 
@@ -270,14 +263,14 @@ final class InvalidJsonTest extends Framework\TestCase
         $faker = self::faker();
 
         $hexDigits = $faker->lexify('????');
-        $position = Position::create(
-            Offset::fromInt($faker->numberBetween(0, 100)),
-            Line::fromInt($faker->numberBetween(1, 100)),
-            Column::fromInt($faker->numberBetween(1, 100)),
+        $position = Parser\Position::create(
+            Parser\Offset::fromInt($faker->numberBetween(0, 100)),
+            Parser\Line::fromInt($faker->numberBetween(1, 100)),
+            Parser\Column::fromInt($faker->numberBetween(1, 100)),
         );
 
-        $exception = InvalidJson::invalidHexDigitsAt(
-            Bytes::fromString($hexDigits),
+        $exception = Parser\InvalidJson::invalidHexDigitsAt(
+            Parser\Bytes::fromString($hexDigits),
             $position,
         );
 
@@ -301,14 +294,14 @@ final class InvalidJsonTest extends Framework\TestCase
     ): void {
         $faker = self::faker();
 
-        $position = Position::create(
-            Offset::fromInt($faker->numberBetween(0, 100)),
-            Line::fromInt($faker->numberBetween(1, 100)),
-            Column::fromInt($faker->numberBetween(1, 100)),
+        $position = Parser\Position::create(
+            Parser\Offset::fromInt($faker->numberBetween(0, 100)),
+            Parser\Line::fromInt($faker->numberBetween(1, 100)),
+            Parser\Column::fromInt($faker->numberBetween(1, 100)),
         );
 
-        $exception = InvalidJson::invalidHexDigitsAt(
-            Bytes::fromString($hexDigits),
+        $exception = Parser\InvalidJson::invalidHexDigitsAt(
+            Parser\Bytes::fromString($hexDigits),
             $position,
         );
 
@@ -351,13 +344,13 @@ final class InvalidJsonTest extends Framework\TestCase
     {
         $faker = self::faker();
 
-        $position = Position::create(
-            Offset::fromInt($faker->numberBetween(0, 100)),
-            Line::fromInt($faker->numberBetween(1, 100)),
-            Column::fromInt($faker->numberBetween(1, 100)),
+        $position = Parser\Position::create(
+            Parser\Offset::fromInt($faker->numberBetween(0, 100)),
+            Parser\Line::fromInt($faker->numberBetween(1, 100)),
+            Parser\Column::fromInt($faker->numberBetween(1, 100)),
         );
 
-        $exception = InvalidJson::invalidLowSurrogateAt($position);
+        $exception = Parser\InvalidJson::invalidLowSurrogateAt($position);
 
         $message = \sprintf(
             'Invalid low surrogate at line %d, column %d.',
@@ -373,13 +366,13 @@ final class InvalidJsonTest extends Framework\TestCase
     {
         $faker = self::faker();
 
-        $position = Position::create(
-            Offset::fromInt($faker->numberBetween(0, 100)),
-            Line::fromInt($faker->numberBetween(1, 100)),
-            Column::fromInt($faker->numberBetween(1, 100)),
+        $position = Parser\Position::create(
+            Parser\Offset::fromInt($faker->numberBetween(0, 100)),
+            Parser\Line::fromInt($faker->numberBetween(1, 100)),
+            Parser\Column::fromInt($faker->numberBetween(1, 100)),
         );
 
-        $exception = InvalidJson::invalidNumberAt($position);
+        $exception = Parser\InvalidJson::invalidNumberAt($position);
 
         $message = \sprintf(
             'Invalid number at line %d, column %d.',
@@ -395,13 +388,13 @@ final class InvalidJsonTest extends Framework\TestCase
     {
         $faker = self::faker();
 
-        $position = Position::create(
-            Offset::fromInt($faker->numberBetween(0, 100)),
-            Line::fromInt($faker->numberBetween(1, 100)),
-            Column::fromInt($faker->numberBetween(1, 100)),
+        $position = Parser\Position::create(
+            Parser\Offset::fromInt($faker->numberBetween(0, 100)),
+            Parser\Line::fromInt($faker->numberBetween(1, 100)),
+            Parser\Column::fromInt($faker->numberBetween(1, 100)),
         );
 
-        $exception = InvalidJson::malformedUtf8At($position);
+        $exception = Parser\InvalidJson::malformedUtf8At($position);
 
         $message = \sprintf(
             'Malformed UTF-8 at line %d, column %d.',
@@ -417,14 +410,14 @@ final class InvalidJsonTest extends Framework\TestCase
     {
         $faker = self::faker();
 
-        $maximumDepth = MaximumDepth::fromInt($faker->numberBetween(1, 512));
-        $position = Position::create(
-            Offset::fromInt($faker->numberBetween(0, 100)),
-            Line::fromInt($faker->numberBetween(1, 100)),
-            Column::fromInt($faker->numberBetween(1, 100)),
+        $maximumDepth = Parser\MaximumDepth::fromInt($faker->numberBetween(1, 512));
+        $position = Parser\Position::create(
+            Parser\Offset::fromInt($faker->numberBetween(0, 100)),
+            Parser\Line::fromInt($faker->numberBetween(1, 100)),
+            Parser\Column::fromInt($faker->numberBetween(1, 100)),
         );
 
-        $exception = InvalidJson::maximumDepthExceededAt(
+        $exception = Parser\InvalidJson::maximumDepthExceededAt(
             $maximumDepth,
             $position,
         );
@@ -444,13 +437,13 @@ final class InvalidJsonTest extends Framework\TestCase
     {
         $faker = self::faker();
 
-        $position = Position::create(
-            Offset::fromInt($faker->numberBetween(0, 100)),
-            Line::fromInt($faker->numberBetween(1, 100)),
-            Column::fromInt($faker->numberBetween(1, 100)),
+        $position = Parser\Position::create(
+            Parser\Offset::fromInt($faker->numberBetween(0, 100)),
+            Parser\Line::fromInt($faker->numberBetween(1, 100)),
+            Parser\Column::fromInt($faker->numberBetween(1, 100)),
         );
 
-        $exception = InvalidJson::missingDigitAfterDecimalPointAt($position);
+        $exception = Parser\InvalidJson::missingDigitAfterDecimalPointAt($position);
 
         $message = \sprintf(
             'Expected digit after decimal point at line %d, column %d.',
@@ -466,13 +459,13 @@ final class InvalidJsonTest extends Framework\TestCase
     {
         $faker = self::faker();
 
-        $position = Position::create(
-            Offset::fromInt($faker->numberBetween(0, 100)),
-            Line::fromInt($faker->numberBetween(1, 100)),
-            Column::fromInt($faker->numberBetween(1, 100)),
+        $position = Parser\Position::create(
+            Parser\Offset::fromInt($faker->numberBetween(0, 100)),
+            Parser\Line::fromInt($faker->numberBetween(1, 100)),
+            Parser\Column::fromInt($faker->numberBetween(1, 100)),
         );
 
-        $exception = InvalidJson::missingDigitInExponentAt($position);
+        $exception = Parser\InvalidJson::missingDigitInExponentAt($position);
 
         $message = \sprintf(
             'Expected digit in exponent at line %d, column %d.',
@@ -488,13 +481,13 @@ final class InvalidJsonTest extends Framework\TestCase
     {
         $faker = self::faker();
 
-        $position = Position::create(
-            Offset::fromInt($faker->numberBetween(0, 100)),
-            Line::fromInt($faker->numberBetween(1, 100)),
-            Column::fromInt($faker->numberBetween(1, 100)),
+        $position = Parser\Position::create(
+            Parser\Offset::fromInt($faker->numberBetween(0, 100)),
+            Parser\Line::fromInt($faker->numberBetween(1, 100)),
+            Parser\Column::fromInt($faker->numberBetween(1, 100)),
         );
 
-        $exception = InvalidJson::missingHexDigitsAt($position);
+        $exception = Parser\InvalidJson::missingHexDigitsAt($position);
 
         $message = \sprintf(
             'Expected 4 hex digits at line %d, column %d.',
@@ -510,13 +503,13 @@ final class InvalidJsonTest extends Framework\TestCase
     {
         $faker = self::faker();
 
-        $position = Position::create(
-            Offset::fromInt($faker->numberBetween(0, 100)),
-            Line::fromInt($faker->numberBetween(1, 100)),
-            Column::fromInt($faker->numberBetween(1, 100)),
+        $position = Parser\Position::create(
+            Parser\Offset::fromInt($faker->numberBetween(0, 100)),
+            Parser\Line::fromInt($faker->numberBetween(1, 100)),
+            Parser\Column::fromInt($faker->numberBetween(1, 100)),
         );
 
-        $exception = InvalidJson::missingLowSurrogateAt($position);
+        $exception = Parser\InvalidJson::missingLowSurrogateAt($position);
 
         $message = \sprintf(
             'Expected low surrogate after high surrogate at line %d, column %d.',
@@ -532,13 +525,13 @@ final class InvalidJsonTest extends Framework\TestCase
     {
         $faker = self::faker();
 
-        $position = Position::create(
-            Offset::fromInt($faker->numberBetween(0, 100)),
-            Line::fromInt($faker->numberBetween(1, 100)),
-            Column::fromInt($faker->numberBetween(1, 100)),
+        $position = Parser\Position::create(
+            Parser\Offset::fromInt($faker->numberBetween(0, 100)),
+            Parser\Line::fromInt($faker->numberBetween(1, 100)),
+            Parser\Column::fromInt($faker->numberBetween(1, 100)),
         );
 
-        $exception = InvalidJson::unescapedControlCharacterAt($position);
+        $exception = Parser\InvalidJson::unescapedControlCharacterAt($position);
 
         $message = \sprintf(
             'Unescaped control character at line %d, column %d.',
@@ -557,14 +550,14 @@ final class InvalidJsonTest extends Framework\TestCase
     {
         $faker = self::faker();
 
-        $position = Position::create(
-            Offset::fromInt($faker->numberBetween(0, 100)),
-            Line::fromInt($faker->numberBetween(1, 100)),
-            Column::fromInt($faker->numberBetween(1, 100)),
+        $position = Parser\Position::create(
+            Parser\Offset::fromInt($faker->numberBetween(0, 100)),
+            Parser\Line::fromInt($faker->numberBetween(1, 100)),
+            Parser\Column::fromInt($faker->numberBetween(1, 100)),
         );
 
-        $exception = InvalidJson::unexpectedCharacterAt(
-            Bytes::fromString($character),
+        $exception = Parser\InvalidJson::unexpectedCharacterAt(
+            Parser\Bytes::fromString($character),
             $position,
         );
 
@@ -585,8 +578,8 @@ final class InvalidJsonTest extends Framework\TestCase
     public static function providePrintableCharacter(): iterable
     {
         $values = [
-            'space' => ' ',
             'letter' => self::faker()->randomLetter(),
+            'space' => ' ',
             'tilde' => '~',
         ];
 
@@ -606,14 +599,14 @@ final class InvalidJsonTest extends Framework\TestCase
     ): void {
         $faker = self::faker();
 
-        $position = Position::create(
-            Offset::fromInt($faker->numberBetween(0, 100)),
-            Line::fromInt($faker->numberBetween(1, 100)),
-            Column::fromInt($faker->numberBetween(1, 100)),
+        $position = Parser\Position::create(
+            Parser\Offset::fromInt($faker->numberBetween(0, 100)),
+            Parser\Line::fromInt($faker->numberBetween(1, 100)),
+            Parser\Column::fromInt($faker->numberBetween(1, 100)),
         );
 
-        $exception = InvalidJson::unexpectedCharacterAt(
-            Bytes::fromString($character),
+        $exception = Parser\InvalidJson::unexpectedCharacterAt(
+            Parser\Bytes::fromString($character),
             $position,
         );
 
@@ -632,13 +625,13 @@ final class InvalidJsonTest extends Framework\TestCase
     {
         $faker = self::faker();
 
-        $position = Position::create(
-            Offset::fromInt($faker->numberBetween(0, 100)),
-            Line::fromInt($faker->numberBetween(1, 100)),
-            Column::fromInt($faker->numberBetween(1, 100)),
+        $position = Parser\Position::create(
+            Parser\Offset::fromInt($faker->numberBetween(0, 100)),
+            Parser\Line::fromInt($faker->numberBetween(1, 100)),
+            Parser\Column::fromInt($faker->numberBetween(1, 100)),
         );
 
-        $exception = InvalidJson::unexpectedEndOfInputAt($position);
+        $exception = Parser\InvalidJson::unexpectedEndOfInputAt($position);
 
         self::assertSame('Unexpected end of input.', $exception->getMessage());
         self::assertSame($position, $exception->position());
@@ -648,13 +641,13 @@ final class InvalidJsonTest extends Framework\TestCase
     {
         $faker = self::faker();
 
-        $position = Position::create(
-            Offset::fromInt($faker->numberBetween(0, 100)),
-            Line::fromInt($faker->numberBetween(1, 100)),
-            Column::fromInt($faker->numberBetween(1, 100)),
+        $position = Parser\Position::create(
+            Parser\Offset::fromInt($faker->numberBetween(0, 100)),
+            Parser\Line::fromInt($faker->numberBetween(1, 100)),
+            Parser\Column::fromInt($faker->numberBetween(1, 100)),
         );
 
-        $exception = InvalidJson::unexpectedEndOfInputInArrayAt($position);
+        $exception = Parser\InvalidJson::unexpectedEndOfInputInArrayAt($position);
 
         self::assertSame('Unexpected end of input in array.', $exception->getMessage());
         self::assertSame($position, $exception->position());
@@ -664,13 +657,13 @@ final class InvalidJsonTest extends Framework\TestCase
     {
         $faker = self::faker();
 
-        $position = Position::create(
-            Offset::fromInt($faker->numberBetween(0, 100)),
-            Line::fromInt($faker->numberBetween(1, 100)),
-            Column::fromInt($faker->numberBetween(1, 100)),
+        $position = Parser\Position::create(
+            Parser\Offset::fromInt($faker->numberBetween(0, 100)),
+            Parser\Line::fromInt($faker->numberBetween(1, 100)),
+            Parser\Column::fromInt($faker->numberBetween(1, 100)),
         );
 
-        $exception = InvalidJson::unexpectedEndOfInputInEscapeSequenceAt($position);
+        $exception = Parser\InvalidJson::unexpectedEndOfInputInEscapeSequenceAt($position);
 
         self::assertSame('Unexpected end of input in escape sequence.', $exception->getMessage());
         self::assertSame($position, $exception->position());
@@ -680,13 +673,13 @@ final class InvalidJsonTest extends Framework\TestCase
     {
         $faker = self::faker();
 
-        $position = Position::create(
-            Offset::fromInt($faker->numberBetween(0, 100)),
-            Line::fromInt($faker->numberBetween(1, 100)),
-            Column::fromInt($faker->numberBetween(1, 100)),
+        $position = Parser\Position::create(
+            Parser\Offset::fromInt($faker->numberBetween(0, 100)),
+            Parser\Line::fromInt($faker->numberBetween(1, 100)),
+            Parser\Column::fromInt($faker->numberBetween(1, 100)),
         );
 
-        $exception = InvalidJson::unexpectedEndOfInputInObjectAt($position);
+        $exception = Parser\InvalidJson::unexpectedEndOfInputInObjectAt($position);
 
         self::assertSame('Unexpected end of input in object.', $exception->getMessage());
         self::assertSame($position, $exception->position());
@@ -696,13 +689,13 @@ final class InvalidJsonTest extends Framework\TestCase
     {
         $faker = self::faker();
 
-        $position = Position::create(
-            Offset::fromInt($faker->numberBetween(0, 100)),
-            Line::fromInt($faker->numberBetween(1, 100)),
-            Column::fromInt($faker->numberBetween(1, 100)),
+        $position = Parser\Position::create(
+            Parser\Offset::fromInt($faker->numberBetween(0, 100)),
+            Parser\Line::fromInt($faker->numberBetween(1, 100)),
+            Parser\Column::fromInt($faker->numberBetween(1, 100)),
         );
 
-        $exception = InvalidJson::unexpectedLowSurrogateAt($position);
+        $exception = Parser\InvalidJson::unexpectedLowSurrogateAt($position);
 
         $message = \sprintf(
             'Unexpected low surrogate at line %d, column %d.',
@@ -718,13 +711,13 @@ final class InvalidJsonTest extends Framework\TestCase
     {
         $faker = self::faker();
 
-        $position = Position::create(
-            Offset::fromInt($faker->numberBetween(0, 100)),
-            Line::fromInt($faker->numberBetween(1, 100)),
-            Column::fromInt($faker->numberBetween(1, 100)),
+        $position = Parser\Position::create(
+            Parser\Offset::fromInt($faker->numberBetween(0, 100)),
+            Parser\Line::fromInt($faker->numberBetween(1, 100)),
+            Parser\Column::fromInt($faker->numberBetween(1, 100)),
         );
 
-        $exception = InvalidJson::unterminatedStringAt($position);
+        $exception = Parser\InvalidJson::unterminatedStringAt($position);
 
         self::assertSame('Unterminated string.', $exception->getMessage());
         self::assertSame($position, $exception->position());

@@ -13,10 +13,9 @@ declare(strict_types=1);
 
 namespace Ergebnis\Json\Parser\Test\Double\Traverser;
 
-use Ergebnis\Json\Parser\Node;
-use Ergebnis\Json\Parser\Traverser;
+use Ergebnis\Json\Parser;
 
-final class ThrowingVisitor implements Traverser\Visitor
+final class ThrowingVisitor implements Parser\Traverser\Visitor
 {
     private \Throwable $throwable;
     private bool $hasThrown = false;
@@ -27,25 +26,25 @@ final class ThrowingVisitor implements Traverser\Visitor
     }
 
     public function enter(
-        Node\Node $node,
-        Traverser\Path $path
-    ): Traverser\EnterAction {
+        Parser\Node\Node $node,
+        Parser\Traverser\Path $path
+    ): Parser\Traverser\EnterAction {
         if (
             !$this->hasThrown
-            && $node instanceof Node\StringNode
+            && $node instanceof Parser\Node\StringNode
         ) {
             $this->hasThrown = true;
 
             throw $this->throwable;
         }
 
-        return Traverser\EnterAction::keep();
+        return Parser\Traverser\EnterAction::keep();
     }
 
     public function leave(
-        Node\Node $node,
-        Traverser\Path $path
-    ): Traverser\LeaveAction {
-        return Traverser\LeaveAction::keep();
+        Parser\Node\Node $node,
+        Parser\Traverser\Path $path
+    ): Parser\Traverser\LeaveAction {
+        return Parser\Traverser\LeaveAction::keep();
     }
 }

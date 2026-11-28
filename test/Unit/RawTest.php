@@ -13,9 +13,7 @@ declare(strict_types=1);
 
 namespace Ergebnis\Json\Parser\Test\Unit;
 
-use Ergebnis\Json\Parser\Bytes;
-use Ergebnis\Json\Parser\Raw;
-use Ergebnis\Json\Parser\Test;
+use Ergebnis\Json\Parser;
 use PHPUnit\Framework;
 
 /**
@@ -25,13 +23,13 @@ use PHPUnit\Framework;
  */
 final class RawTest extends Framework\TestCase
 {
-    use Test\Util\Helper;
+    use Parser\Test\Util\Helper;
 
     public function testFromStringReturnsRaw(): void
     {
         $value = self::faker()->sentence();
 
-        $raw = Raw::fromString($value);
+        $raw = Parser\Raw::fromString($value);
 
         self::assertSame($value, $raw->toString());
     }
@@ -40,9 +38,9 @@ final class RawTest extends Framework\TestCase
     {
         $value = self::faker()->sentence();
 
-        $raw = Raw::fromString($value);
+        $raw = Parser\Raw::fromString($value);
 
-        $expected = Bytes::fromString($value);
+        $expected = Parser\Bytes::fromString($value);
 
         self::assertEquals($expected, $raw->toBytes());
     }

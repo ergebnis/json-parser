@@ -13,9 +13,7 @@ declare(strict_types=1);
 
 namespace Ergebnis\Json\Parser\Test\Unit;
 
-use Ergebnis\Json\Parser\InvalidNumber;
-use Ergebnis\Json\Parser\Raw;
-use Ergebnis\Json\Parser\Test;
+use Ergebnis\Json\Parser;
 use PHPUnit\Framework;
 
 /**
@@ -26,15 +24,15 @@ use PHPUnit\Framework;
  */
 final class InvalidNumberTest extends Framework\TestCase
 {
-    use Test\Util\Helper;
+    use Parser\Test\Util\Helper;
 
     public function testNotValidJsonNumberReturnsInvalidNumber(): void
     {
         $word = self::faker()->word();
 
-        $raw = Raw::fromString($word);
+        $raw = Parser\Raw::fromString($word);
 
-        $exception = InvalidNumber::notValidJsonNumber($raw);
+        $exception = Parser\InvalidNumber::notValidJsonNumber($raw);
 
         $message = \sprintf(
             '"%s" is not a valid JSON number.',
@@ -51,7 +49,7 @@ final class InvalidNumberTest extends Framework\TestCase
         float $value,
         string $message
     ): void {
-        $exception = InvalidNumber::notFinite($value);
+        $exception = Parser\InvalidNumber::notFinite($value);
 
         self::assertSame($message, $exception->getMessage());
     }

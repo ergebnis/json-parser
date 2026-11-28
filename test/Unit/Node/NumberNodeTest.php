@@ -13,13 +13,7 @@ declare(strict_types=1);
 
 namespace Ergebnis\Json\Parser\Test\Unit\Node;
 
-use Ergebnis\Json\Parser\InvalidJson;
-use Ergebnis\Json\Parser\InvalidNumber;
-use Ergebnis\Json\Parser\MaximumDepth;
-use Ergebnis\Json\Parser\Node;
-use Ergebnis\Json\Parser\Parser;
-use Ergebnis\Json\Parser\Raw;
-use Ergebnis\Json\Parser\Test;
+use Ergebnis\Json\Parser;
 use PHPUnit\Framework;
 use Symfony\Component\Finder;
 
@@ -36,18 +30,18 @@ use Symfony\Component\Finder;
  */
 final class NumberNodeTest extends Framework\TestCase
 {
-    use Test\Util\Helper;
+    use Parser\Test\Util\Helper;
 
     /**
      * @dataProvider provideInvalidRaw
      */
     public function testFromRawThrowsInvalidNumberWhenRawIsInvalid(string $value): void
     {
-        $raw = Raw::fromString($value);
+        $raw = Parser\Raw::fromString($value);
 
-        $this->expectException(InvalidNumber::class);
+        $this->expectException(Parser\InvalidNumber::class);
 
-        Node\NumberNode::fromRaw($raw);
+        Parser\Node\NumberNode::fromRaw($raw);
     }
 
     /**
@@ -87,11 +81,11 @@ final class NumberNodeTest extends Framework\TestCase
      */
     public function testFromRawThrowsInvalidNumberWhenParserDoesNotAcceptRaw(string $value): void
     {
-        $raw = Raw::fromString($value);
+        $raw = Parser\Raw::fromString($value);
 
-        $this->expectException(InvalidNumber::class);
+        $this->expectException(Parser\InvalidNumber::class);
 
-        Node\NumberNode::fromRaw($raw);
+        Parser\Node\NumberNode::fromRaw($raw);
     }
 
     /**
@@ -113,9 +107,9 @@ final class NumberNodeTest extends Framework\TestCase
      */
     public function testFromRawReturnsNumberNodeWhenRawIsValid(string $value): void
     {
-        $raw = Raw::fromString($value);
+        $raw = Parser\Raw::fromString($value);
 
-        $node = Node\NumberNode::fromRaw($raw);
+        $node = Parser\Node\NumberNode::fromRaw($raw);
 
         self::assertSame($value, $node->raw());
     }
@@ -154,9 +148,9 @@ final class NumberNodeTest extends Framework\TestCase
      */
     public function testFromRawReturnsNumberNodeWhenParserAcceptsRaw(string $value): void
     {
-        $raw = Raw::fromString($value);
+        $raw = Parser\Raw::fromString($value);
 
-        $node = Node\NumberNode::fromRaw($raw);
+        $node = Parser\Node\NumberNode::fromRaw($raw);
 
         self::assertSame($value, $node->raw());
     }
@@ -179,7 +173,7 @@ final class NumberNodeTest extends Framework\TestCase
     {
         $raw = (string) self::faker()->numberBetween();
 
-        $node = Node\NumberNode::fromParsedRaw($raw);
+        $node = Parser\Node\NumberNode::fromParsedRaw($raw);
 
         self::assertSame($raw, $node->raw());
     }
@@ -190,11 +184,11 @@ final class NumberNodeTest extends Framework\TestCase
      */
     public function testFromIntReturnsNumberNode(int $value): void
     {
-        $node = Node\NumberNode::fromInt($value);
+        $node = Parser\Node\NumberNode::fromInt($value);
 
         self::assertSame((string) $value, $node->raw());
         self::assertSame($value, $node->toInt());
-        self::assertEquals($node, Node\NumberNode::fromRaw(Raw::fromString($node->raw())));
+        self::assertEquals($node, Parser\Node\NumberNode::fromRaw(Parser\Raw::fromString($node->raw())));
     }
 
     /**
@@ -219,9 +213,9 @@ final class NumberNodeTest extends Framework\TestCase
      */
     public function testFromFloatThrowsInvalidNumberWhenValueIsNotFinite(float $value): void
     {
-        $this->expectException(InvalidNumber::class);
+        $this->expectException(Parser\InvalidNumber::class);
 
-        Node\NumberNode::fromFloat($value);
+        Parser\Node\NumberNode::fromFloat($value);
     }
 
     /**
@@ -249,7 +243,7 @@ final class NumberNodeTest extends Framework\TestCase
         float $value,
         string $raw
     ): void {
-        $node = Node\NumberNode::fromFloat($value);
+        $node = Parser\Node\NumberNode::fromFloat($value);
 
         self::assertSame($raw, $node->raw());
         self::assertSame($value, $node->toFloat());
@@ -309,6 +303,10 @@ final class NumberNodeTest extends Framework\TestCase
                 1.0,
                 '1.0',
             ],
+            'integral-when-decimal-point-follows-17-digits' => [
+                1e16,
+                '10000000000000000.0',
+            ],
             'integral-with-17-digits' => [
                 12345678901234568.0,
                 '12345678901234568.0',
@@ -316,10 +314,6 @@ final class NumberNodeTest extends Framework\TestCase
             'integral-with-trailing-zeros' => [
                 100.0,
                 '100.0',
-            ],
-            'integral-when-decimal-point-follows-17-digits' => [
-                1e16,
-                '10000000000000000.0',
             ],
             'negative-fraction' => [
                 -1.25,
@@ -365,7 +359,7 @@ final class NumberNodeTest extends Framework\TestCase
         \ini_set('serialize_precision', $serializePrecision);
 
         $raws = \array_map(static function (float $value): string {
-            return Node\NumberNode::fromFloat($value)->raw();
+            return Parser\Node\NumberNode::fromFloat($value)->raw();
         }, $values);
 
         self::assertSame($expected, $raws);
@@ -377,7 +371,7 @@ final class NumberNodeTest extends Framework\TestCase
 
         \ini_set('serialize_precision', '17');
 
-        $node = Node\NumberNode::fromFloat(0.1);
+        $node = Parser\Node\NumberNode::fromFloat(0.1);
 
         \ini_set('serialize_precision', $serializePrecision);
 
@@ -389,9 +383,9 @@ final class NumberNodeTest extends Framework\TestCase
      */
     public function testToIntThrowsNumberCanNotBeRepresentedWhenValueCanNotBeRepresentedAsInt(string $value): void
     {
-        $node = Node\NumberNode::fromRaw(Raw::fromString($value));
+        $node = Parser\Node\NumberNode::fromRaw(Parser\Raw::fromString($value));
 
-        $this->expectException(Node\NumberCanNotBeRepresented::class);
+        $this->expectException(Parser\Node\NumberCanNotBeRepresented::class);
 
         $node->toInt();
     }
@@ -428,7 +422,7 @@ final class NumberNodeTest extends Framework\TestCase
         string $raw,
         int $value
     ): void {
-        $node = Node\NumberNode::fromRaw(Raw::fromString($raw));
+        $node = Parser\Node\NumberNode::fromRaw(Parser\Raw::fromString($raw));
 
         self::assertSame($value, $node->toInt());
     }
@@ -526,9 +520,9 @@ final class NumberNodeTest extends Framework\TestCase
      */
     public function testToFloatThrowsNumberCanNotBeRepresentedWhenValueCanNotBeRepresentedAsFloat(string $value): void
     {
-        $node = Node\NumberNode::fromRaw(Raw::fromString($value));
+        $node = Parser\Node\NumberNode::fromRaw(Parser\Raw::fromString($value));
 
-        $this->expectException(Node\NumberCanNotBeRepresented::class);
+        $this->expectException(Parser\Node\NumberCanNotBeRepresented::class);
 
         $node->toFloat();
     }
@@ -566,7 +560,7 @@ final class NumberNodeTest extends Framework\TestCase
         string $raw,
         float $value
     ): void {
-        $node = Node\NumberNode::fromRaw(Raw::fromString($raw));
+        $node = Parser\Node\NumberNode::fromRaw(Parser\Raw::fromString($raw));
 
         self::assertSame($value, $node->toFloat());
     }
@@ -648,7 +642,7 @@ final class NumberNodeTest extends Framework\TestCase
      */
     public function testToFloatReturnsNegativeZeroWhenValueIsNegativeZero(string $value): void
     {
-        $node = Node\NumberNode::fromRaw(Raw::fromString($value));
+        $node = Parser\Node\NumberNode::fromRaw(Parser\Raw::fromString($value));
 
         self::assertSame('-0', (string) $node->toFloat());
     }
@@ -709,14 +703,14 @@ final class NumberNodeTest extends Framework\TestCase
 
     private static function parserAccepts(string $value): bool
     {
-        $parser = new Parser();
+        $parser = new Parser\Parser();
 
         try {
             $parser->parse(
-                Raw::fromString($value),
-                MaximumDepth::default(),
+                Parser\Raw::fromString($value),
+                Parser\MaximumDepth::default(),
             );
-        } catch (InvalidJson $exception) {
+        } catch (Parser\InvalidJson $invalidJson) {
             return false;
         }
 

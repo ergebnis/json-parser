@@ -13,8 +13,7 @@ declare(strict_types=1);
 
 namespace Ergebnis\Json\Parser\Test\Benchmark\Node;
 
-use Ergebnis\Json\Parser\Node;
-use Ergebnis\Json\Parser\Raw;
+use Ergebnis\Json\Parser;
 
 /**
  * @BeforeMethods("setUp")
@@ -24,7 +23,7 @@ final class StringNodeBench
     private const COUNT = 100000;
 
     /**
-     * @var list<Raw>
+     * @var list<Parser\Raw>
      */
     private array $raws = [];
 
@@ -41,7 +40,7 @@ final class StringNodeBench
                 $i,
             );
 
-            $this->raws[] = Raw::fromString('"' . $value . '"');
+            $this->raws[] = Parser\Raw::fromString('"' . $value . '"');
             $this->values[] = $value;
         }
     }
@@ -49,14 +48,14 @@ final class StringNodeBench
     public function benchFromRaw(): void
     {
         foreach ($this->raws as $raw) {
-            Node\StringNode::fromRaw($raw);
+            Parser\Node\StringNode::fromRaw($raw);
         }
     }
 
     public function benchFromString(): void
     {
         foreach ($this->values as $value) {
-            Node\StringNode::fromString($value);
+            Parser\Node\StringNode::fromString($value);
         }
     }
 }

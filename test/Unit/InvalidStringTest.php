@@ -13,9 +13,7 @@ declare(strict_types=1);
 
 namespace Ergebnis\Json\Parser\Test\Unit;
 
-use Ergebnis\Json\Parser\InvalidString;
-use Ergebnis\Json\Parser\Raw;
-use Ergebnis\Json\Parser\Test;
+use Ergebnis\Json\Parser;
 use PHPUnit\Framework;
 
 /**
@@ -26,15 +24,15 @@ use PHPUnit\Framework;
  */
 final class InvalidStringTest extends Framework\TestCase
 {
-    use Test\Util\Helper;
+    use Parser\Test\Util\Helper;
 
     public function testNotValidJsonStringReturnsInvalidString(): void
     {
         $word = self::faker()->word();
 
-        $raw = Raw::fromString('"' . $word . "\x00");
+        $raw = Parser\Raw::fromString('"' . $word . "\x00");
 
-        $exception = InvalidString::notValidJsonString($raw);
+        $exception = Parser\InvalidString::notValidJsonString($raw);
 
         $message = \sprintf(
             '""%s\x00" is not a valid JSON string.',
@@ -48,7 +46,7 @@ final class InvalidStringTest extends Framework\TestCase
     {
         $word = self::faker()->word();
 
-        $exception = InvalidString::notValidUtf8($word . "\xC3");
+        $exception = Parser\InvalidString::notValidUtf8($word . "\xC3");
 
         $message = \sprintf(
             '"%s\xC3" is not valid UTF-8.',

@@ -13,8 +13,7 @@ declare(strict_types=1);
 
 namespace Ergebnis\Json\Parser\Test\Unit;
 
-use Ergebnis\Json\Parser\IndentSize;
-use Ergebnis\Json\Parser\InvalidIndentSize;
+use Ergebnis\Json\Parser;
 use PHPUnit\Framework;
 
 /**
@@ -30,9 +29,9 @@ final class IndentSizeTest extends Framework\TestCase
      */
     public function testFromIntThrowsInvalidIndentSizeWhenValueIsNotGreaterThanZero(int $value): void
     {
-        $this->expectException(InvalidIndentSize::class);
+        $this->expectException(Parser\InvalidIndentSize::class);
 
-        IndentSize::fromInt($value);
+        Parser\IndentSize::fromInt($value);
     }
 
     /**
@@ -40,7 +39,7 @@ final class IndentSizeTest extends Framework\TestCase
      */
     public function testFromIntReturnsIndentSizeWhenValueIsGreaterThanZero(int $value): void
     {
-        $indentSize = IndentSize::fromInt($value);
+        $indentSize = Parser\IndentSize::fromInt($value);
 
         self::assertSame($value, $indentSize->toInt());
     }

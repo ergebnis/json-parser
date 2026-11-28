@@ -13,7 +13,7 @@ declare(strict_types=1);
 
 namespace Ergebnis\Json\Parser\Test\Unit;
 
-use Ergebnis\Json\Parser\FinalNewLine;
+use Ergebnis\Json\Parser;
 use PHPUnit\Framework;
 
 /**
@@ -23,8 +23,8 @@ final class FinalNewLineTest extends Framework\TestCase
 {
     public function testEqualsReturnsFalseWhenValueIsDifferent(): void
     {
-        $one = FinalNewLine::none();
-        $two = FinalNewLine::present();
+        $one = Parser\FinalNewLine::none();
+        $two = Parser\FinalNewLine::present();
 
         self::assertFalse($one->equals($two));
     }
@@ -33,25 +33,25 @@ final class FinalNewLineTest extends Framework\TestCase
      * @dataProvider provideSameFinalNewLines
      */
     public function testEqualsReturnsTrueWhenValueIsSame(
-        FinalNewLine $one,
-        FinalNewLine $two
+        Parser\FinalNewLine $one,
+        Parser\FinalNewLine $two
     ): void {
         self::assertTrue($one->equals($two));
     }
 
     /**
-     * @return \Generator<string, array{0: FinalNewLine, 1: FinalNewLine}>
+     * @return \Generator<string, array{0: Parser\FinalNewLine, 1: Parser\FinalNewLine}>
      */
     public static function provideSameFinalNewLines(): iterable
     {
         $values = [
             'none' => [
-                FinalNewLine::none(),
-                FinalNewLine::none(),
+                Parser\FinalNewLine::none(),
+                Parser\FinalNewLine::none(),
             ],
             'present' => [
-                FinalNewLine::present(),
-                FinalNewLine::present(),
+                Parser\FinalNewLine::present(),
+                Parser\FinalNewLine::present(),
             ],
         ];
 

@@ -13,30 +13,27 @@ declare(strict_types=1);
 
 namespace Ergebnis\Json\Parser\Test\Double\Traverser;
 
-use Ergebnis\Json\Parser\Format;
-use Ergebnis\Json\Parser\Node;
-use Ergebnis\Json\Parser\Printer;
-use Ergebnis\Json\Parser\Traverser;
+use Ergebnis\Json\Parser;
 
-final class ScriptedVisitor implements Traverser\Visitor
+final class ScriptedVisitor implements Parser\Traverser\Visitor
 {
     private string $name;
     private Log $log;
 
     /**
-     * @var array<string, Traverser\EnterAction>
+     * @var array<string, Parser\Traverser\EnterAction>
      */
     private array $enterActions;
 
     /**
-     * @var array<string, Traverser\LeaveAction>
+     * @var array<string, Parser\Traverser\LeaveAction>
      */
     private array $leaveActions;
-    private Printer $printer;
+    private Parser\Printer $printer;
 
     /**
-     * @param array<string, Traverser\EnterAction> $enterActions
-     * @param array<string, Traverser\LeaveAction> $leaveActions
+     * @param array<string, Parser\Traverser\EnterAction> $enterActions
+     * @param array<string, Parser\Traverser\LeaveAction> $leaveActions
      */
     public function __construct(
         string $name,
@@ -48,13 +45,13 @@ final class ScriptedVisitor implements Traverser\Visitor
         $this->log = $log;
         $this->enterActions = $enterActions;
         $this->leaveActions = $leaveActions;
-        $this->printer = new Printer();
+        $this->printer = new Parser\Printer();
     }
 
     public function enter(
-        Node\Node $node,
-        Traverser\Path $path
-    ): Traverser\EnterAction {
+        Parser\Node\Node $node,
+        Parser\Traverser\Path $path
+    ): Parser\Traverser\EnterAction {
         $location = $this->location(
             $node,
             $path,
@@ -70,13 +67,13 @@ final class ScriptedVisitor implements Traverser\Visitor
             return $this->enterActions[$location];
         }
 
-        return Traverser\EnterAction::keep();
+        return Parser\Traverser\EnterAction::keep();
     }
 
     public function leave(
-        Node\Node $node,
-        Traverser\Path $path
-    ): Traverser\LeaveAction {
+        Parser\Node\Node $node,
+        Parser\Traverser\Path $path
+    ): Parser\Traverser\LeaveAction {
         $location = $this->location(
             $node,
             $path,
@@ -92,19 +89,19 @@ final class ScriptedVisitor implements Traverser\Visitor
             return $this->leaveActions[$location];
         }
 
-        return Traverser\LeaveAction::keep();
+        return Parser\Traverser\LeaveAction::keep();
     }
 
     private function location(
-        Node\Node $node,
-        Traverser\Path $path
+        Parser\Node\Node $node,
+        Parser\Traverser\Path $path
     ): string {
         return \sprintf(
             '"%s" %s',
             $path->toJsonPointer()->toJsonString(),
             $this->printer->print(
                 $node,
-                Format::compact(),
+                Parser\Format::compact(),
             ),
         );
     }

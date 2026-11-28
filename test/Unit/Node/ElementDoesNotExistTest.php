@@ -13,9 +13,7 @@ declare(strict_types=1);
 
 namespace Ergebnis\Json\Parser\Test\Unit\Node;
 
-use Ergebnis\Json\Parser\Index;
-use Ergebnis\Json\Parser\Node;
-use Ergebnis\Json\Parser\Test;
+use Ergebnis\Json\Parser;
 use PHPUnit\Framework;
 
 /**
@@ -25,13 +23,13 @@ use PHPUnit\Framework;
  */
 final class ElementDoesNotExistTest extends Framework\TestCase
 {
-    use Test\Util\Helper;
+    use Parser\Test\Util\Helper;
 
     public function testAtReturnsElementDoesNotExist(): void
     {
-        $index = Index::fromInt(self::faker()->numberBetween(0, 100));
+        $index = Parser\Index::fromInt(self::faker()->numberBetween(0, 100));
 
-        $exception = Node\ElementDoesNotExist::at($index);
+        $exception = Parser\Node\ElementDoesNotExist::at($index);
 
         $message = \sprintf(
             'Element at index %d does not exist.',

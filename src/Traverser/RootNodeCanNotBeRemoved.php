@@ -13,9 +13,9 @@ declare(strict_types=1);
 
 namespace Ergebnis\Json\Parser\Traverser;
 
-use Ergebnis\Json\Parser\Exception;
+use Ergebnis\Json\Parser;
 
-final class RootNodeCanNotBeRemoved extends \RuntimeException implements Exception
+final class RootNodeCanNotBeRemoved extends \RuntimeException implements Parser\Exception
 {
     public static function by(Visitor $visitor): self
     {

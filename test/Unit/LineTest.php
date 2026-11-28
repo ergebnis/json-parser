@@ -13,8 +13,7 @@ declare(strict_types=1);
 
 namespace Ergebnis\Json\Parser\Test\Unit;
 
-use Ergebnis\Json\Parser\InvalidLine;
-use Ergebnis\Json\Parser\Line;
+use Ergebnis\Json\Parser;
 use PHPUnit\Framework;
 
 /**
@@ -30,9 +29,9 @@ final class LineTest extends Framework\TestCase
      */
     public function testFromIntThrowsInvalidLineWhenValueIsNotGreaterThanZero(int $value): void
     {
-        $this->expectException(InvalidLine::class);
+        $this->expectException(Parser\InvalidLine::class);
 
-        Line::fromInt($value);
+        Parser\Line::fromInt($value);
     }
 
     /**
@@ -40,7 +39,7 @@ final class LineTest extends Framework\TestCase
      */
     public function testFromIntReturnsLineWhenValueIsGreaterThanZero(int $value): void
     {
-        $line = Line::fromInt($value);
+        $line = Parser\Line::fromInt($value);
 
         self::assertSame($value, $line->toInt());
     }

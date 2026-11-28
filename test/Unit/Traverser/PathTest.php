@@ -13,11 +13,7 @@ declare(strict_types=1);
 
 namespace Ergebnis\Json\Parser\Test\Unit\Traverser;
 
-use Ergebnis\Json\Parser\Index;
-use Ergebnis\Json\Parser\Node;
-use Ergebnis\Json\Parser\Raw;
-use Ergebnis\Json\Parser\Test;
-use Ergebnis\Json\Parser\Traverser;
+use Ergebnis\Json\Parser;
 use PHPUnit\Framework;
 
 /**
@@ -29,11 +25,11 @@ use PHPUnit\Framework;
  */
 final class PathTest extends Framework\TestCase
 {
-    use Test\Util\Helper;
+    use Parser\Test\Util\Helper;
 
     public function testRootReturnsPath(): void
     {
-        $path = Traverser\Path::root();
+        $path = Parser\Traverser\Path::root();
 
         self::assertNull($path->index());
         self::assertNull($path->name());
@@ -42,9 +38,9 @@ final class PathTest extends Framework\TestCase
 
     public function testElementReturnsPath(): void
     {
-        $index = Index::fromInt(self::faker()->numberBetween(0, 100));
+        $index = Parser\Index::fromInt(self::faker()->numberBetween(0, 100));
 
-        $parent = Traverser\Path::root();
+        $parent = Parser\Traverser\Path::root();
 
         $path = $parent->element($index);
 
@@ -55,10 +51,10 @@ final class PathTest extends Framework\TestCase
 
     public function testPropertyReturnsPath(): void
     {
-        $index = Index::fromInt(self::faker()->numberBetween(0, 100));
-        $name = Node\StringNode::fromRaw(Raw::fromString('"a\/b~c"'));
+        $index = Parser\Index::fromInt(self::faker()->numberBetween(0, 100));
+        $name = Parser\Node\StringNode::fromRaw(Parser\Raw::fromString('"a\/b~c"'));
 
-        $parent = Traverser\Path::root();
+        $parent = Parser\Traverser\Path::root();
 
         $path = $parent->property(
             $index,
@@ -74,13 +70,13 @@ final class PathTest extends Framework\TestCase
     {
         $faker = self::faker();
 
-        $outerIndex = Index::fromInt($faker->numberBetween(0, 100));
-        $outerName = Node\StringNode::fromString($faker->word());
-        $elementIndex = Index::fromInt($faker->numberBetween(0, 100));
-        $innerIndex = Index::fromInt($faker->numberBetween(0, 100));
-        $innerName = Node\StringNode::fromString($faker->word());
+        $outerIndex = Parser\Index::fromInt($faker->numberBetween(0, 100));
+        $outerName = Parser\Node\StringNode::fromString($faker->word());
+        $elementIndex = Parser\Index::fromInt($faker->numberBetween(0, 100));
+        $innerIndex = Parser\Index::fromInt($faker->numberBetween(0, 100));
+        $innerName = Parser\Node\StringNode::fromString($faker->word());
 
-        $path = Traverser\Path::root()
+        $path = Parser\Traverser\Path::root()
             ->property(
                 $outerIndex,
                 $outerName,
@@ -98,9 +94,9 @@ final class PathTest extends Framework\TestCase
 
     public function testToJsonPointerReturnsSameJsonPointerWhenCalledAgain(): void
     {
-        $index = Index::fromInt(self::faker()->numberBetween(0, 100));
+        $index = Parser\Index::fromInt(self::faker()->numberBetween(0, 100));
 
-        $path = Traverser\Path::root()->element($index);
+        $path = Parser\Traverser\Path::root()->element($index);
 
         $jsonPointer = $path->toJsonPointer();
 

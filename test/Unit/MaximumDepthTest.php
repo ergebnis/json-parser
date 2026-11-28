@@ -13,9 +13,7 @@ declare(strict_types=1);
 
 namespace Ergebnis\Json\Parser\Test\Unit;
 
-use Ergebnis\Json\Parser\InvalidMaximumDepth;
-use Ergebnis\Json\Parser\MaximumDepth;
-use Ergebnis\Json\Parser\Test;
+use Ergebnis\Json\Parser;
 use PHPUnit\Framework;
 
 /**
@@ -25,11 +23,11 @@ use PHPUnit\Framework;
  */
 final class MaximumDepthTest extends Framework\TestCase
 {
-    use Test\Util\Helper;
+    use Parser\Test\Util\Helper;
 
     public function testDefaultReturnsMaximumDepth(): void
     {
-        $maximumDepth = MaximumDepth::default();
+        $maximumDepth = Parser\MaximumDepth::default();
 
         self::assertSame(512, $maximumDepth->toInt());
     }
@@ -40,13 +38,13 @@ final class MaximumDepthTest extends Framework\TestCase
      */
     public function testFromIntThrowsInvalidMaximumDepthWhenValueIsNotGreaterThanZero(int $value): void
     {
-        $this->expectException(InvalidMaximumDepth::class);
+        $this->expectException(Parser\InvalidMaximumDepth::class);
         $this->expectExceptionMessage(\sprintf(
             'Maximum depth %d must be greater than 0.',
             $value,
         ));
 
-        MaximumDepth::fromInt($value);
+        Parser\MaximumDepth::fromInt($value);
     }
 
     /**
@@ -54,13 +52,13 @@ final class MaximumDepthTest extends Framework\TestCase
      */
     public function testFromIntThrowsInvalidMaximumDepthWhenValueIsGreaterThan4096(int $value): void
     {
-        $this->expectException(InvalidMaximumDepth::class);
+        $this->expectException(Parser\InvalidMaximumDepth::class);
         $this->expectExceptionMessage(\sprintf(
             'Maximum depth %d must not be greater than 4096.',
             $value,
         ));
 
-        MaximumDepth::fromInt($value);
+        Parser\MaximumDepth::fromInt($value);
     }
 
     /**
@@ -69,8 +67,8 @@ final class MaximumDepthTest extends Framework\TestCase
     public static function provideValueGreaterThan4096(): iterable
     {
         $values = [
-            'one-greater-than-4096' => 4097,
             'greater-than-4096' => self::faker()->numberBetween(4098, \PHP_INT_MAX),
+            'one-greater-than-4096' => 4097,
             'php-int-max' => \PHP_INT_MAX,
         ];
 
@@ -86,7 +84,7 @@ final class MaximumDepthTest extends Framework\TestCase
      */
     public function testFromIntReturnsMaximumDepthWhenValueIsGreaterThanZeroAndNotGreaterThan4096(int $value): void
     {
-        $maximumDepth = MaximumDepth::fromInt($value);
+        $maximumDepth = Parser\MaximumDepth::fromInt($value);
 
         self::assertSame($value, $maximumDepth->toInt());
     }
@@ -97,9 +95,9 @@ final class MaximumDepthTest extends Framework\TestCase
     public static function provideValueGreaterThanZeroAndNotGreaterThan4096(): iterable
     {
         $values = [
-            'one' => 1,
             'greater-than-one-and-less-than-4096' => self::faker()->numberBetween(2, 4095),
             'limit' => 4096,
+            'one' => 1,
         ];
 
         foreach ($values as $key => $value) {

@@ -13,8 +13,7 @@ declare(strict_types=1);
 
 namespace Ergebnis\Json\Parser\Test\Unit;
 
-use Ergebnis\Json\Parser\Test;
-use Ergebnis\Json\Parser\UnsupportedNode;
+use Ergebnis\Json\Parser;
 use PHPUnit\Framework;
 
 /**
@@ -24,13 +23,13 @@ final class UnsupportedNodeTest extends Framework\TestCase
 {
     public function testFromNodeReturnsUnsupportedNode(): void
     {
-        $node = new Test\Double\Node\CustomNode();
+        $node = new Parser\Test\Double\Node\CustomNode();
 
-        $exception = UnsupportedNode::fromNode($node);
+        $exception = Parser\UnsupportedNode::fromNode($node);
 
         $expected = \sprintf(
             'Node of class "%s" is not supported.',
-            Test\Double\Node\CustomNode::class,
+            Parser\Test\Double\Node\CustomNode::class,
         );
 
         self::assertSame($expected, $exception->getMessage());

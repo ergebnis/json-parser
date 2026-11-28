@@ -13,21 +13,7 @@ declare(strict_types=1);
 
 namespace Ergebnis\Json\Parser\Test\Unit\Traverser;
 
-use Ergebnis\Json\Parser\CyclicNodeDetected;
-use Ergebnis\Json\Parser\FinalNewLine;
-use Ergebnis\Json\Parser\Format;
-use Ergebnis\Json\Parser\Indent;
-use Ergebnis\Json\Parser\IndentSize;
-use Ergebnis\Json\Parser\IndentStyle;
-use Ergebnis\Json\Parser\Index;
-use Ergebnis\Json\Parser\MaximumDepth;
-use Ergebnis\Json\Parser\NewLine;
-use Ergebnis\Json\Parser\Node;
-use Ergebnis\Json\Parser\Parser;
-use Ergebnis\Json\Parser\Printer;
-use Ergebnis\Json\Parser\Raw;
-use Ergebnis\Json\Parser\Test;
-use Ergebnis\Json\Parser\Traverser;
+use Ergebnis\Json\Parser;
 use PHPUnit\Framework;
 
 /**
@@ -58,101 +44,101 @@ use PHPUnit\Framework;
  */
 final class TraverserTest extends Framework\TestCase
 {
-    use Test\Util\Helper;
+    use Parser\Test\Util\Helper;
 
     public function testTraverseThrowsRootNodeCanNotBeRemovedWhenVisitorRemovesRootNodeWhenEntering(): void
     {
-        $visitor = new Test\Double\Traverser\ScriptedVisitor(
+        $visitor = new Parser\Test\Double\Traverser\ScriptedVisitor(
             'visitor',
-            new Test\Double\Traverser\Log(),
+            new Parser\Test\Double\Traverser\Log(),
             [
-                '"" {"name":"foo"}' => Traverser\EnterAction::remove(),
+                '"" {"name":"foo"}' => Parser\Traverser\EnterAction::remove(),
             ],
             [],
         );
         $node = self::parse('{"name":"foo"}');
 
-        $traverser = new Traverser\Traverser($visitor);
+        $traverser = new Parser\Traverser\Traverser($visitor);
 
-        $this->expectException(Traverser\RootNodeCanNotBeRemoved::class);
+        $this->expectException(Parser\Traverser\RootNodeCanNotBeRemoved::class);
 
         $traverser->traverse($node);
     }
 
     public function testTraverseThrowsRootNodeCanNotBeRemovedWhenVisitorRemovesRootNodeWhenLeaving(): void
     {
-        $visitor = new Test\Double\Traverser\ScriptedVisitor(
+        $visitor = new Parser\Test\Double\Traverser\ScriptedVisitor(
             'visitor',
-            new Test\Double\Traverser\Log(),
+            new Parser\Test\Double\Traverser\Log(),
             [],
             [
-                '"" {"name":"foo"}' => Traverser\LeaveAction::remove(),
+                '"" {"name":"foo"}' => Parser\Traverser\LeaveAction::remove(),
             ],
         );
         $node = self::parse('{"name":"foo"}');
 
-        $traverser = new Traverser\Traverser($visitor);
+        $traverser = new Parser\Traverser\Traverser($visitor);
 
-        $this->expectException(Traverser\RootNodeCanNotBeRemoved::class);
+        $this->expectException(Parser\Traverser\RootNodeCanNotBeRemoved::class);
 
         $traverser->traverse($node);
     }
 
     public function testTraverseThrowsCyclicNodeDetectedWhenArrayNodeContainsItself(): void
     {
-        $visitor = new Test\Double\Traverser\KeepingVisitor();
-        $node = Node\ArrayNode::create();
+        $visitor = new Parser\Test\Double\Traverser\KeepingVisitor();
+        $node = Parser\Node\ArrayNode::create();
 
         $node->addElement($node);
 
-        $traverser = new Traverser\Traverser($visitor);
+        $traverser = new Parser\Traverser\Traverser($visitor);
 
-        $this->expectException(CyclicNodeDetected::class);
+        $this->expectException(Parser\CyclicNodeDetected::class);
 
         $traverser->traverse($node);
     }
 
     public function testTraverseThrowsCyclicNodeDetectedWhenObjectNodeContainsItself(): void
     {
-        $visitor = new Test\Double\Traverser\KeepingVisitor();
-        $node = Node\ObjectNode::create();
+        $visitor = new Parser\Test\Double\Traverser\KeepingVisitor();
+        $node = Parser\Node\ObjectNode::create();
 
-        $node->addProperty(Node\ObjectProperty::create(
-            Node\StringNode::fromString(self::faker()->word()),
+        $node->addProperty(Parser\Node\ObjectProperty::create(
+            Parser\Node\StringNode::fromString(self::faker()->word()),
             $node,
         ));
 
-        $traverser = new Traverser\Traverser($visitor);
+        $traverser = new Parser\Traverser\Traverser($visitor);
 
-        $this->expectException(CyclicNodeDetected::class);
+        $this->expectException(Parser\CyclicNodeDetected::class);
 
         $traverser->traverse($node);
     }
 
     public function testTraverseForgetsContainersWhenThrowingCyclicNodeDetectedForArrayNode(): void
     {
-        $name = Node\StringNode::fromString(self::faker()->word());
+        $name = Parser\Node\StringNode::fromString(self::faker()->word());
 
-        $object = Node\ObjectNode::create();
-        $array = Node\ArrayNode::create($object);
+        $object = Parser\Node\ObjectNode::create();
+        $array = Parser\Node\ArrayNode::create($object);
 
-        $object->addProperty(Node\ObjectProperty::create(
+        $object->addProperty(Parser\Node\ObjectProperty::create(
             $name,
             $array,
         ));
 
-        $traverser = new Traverser\Traverser(new Test\Double\Traverser\KeepingVisitor());
+        $traverser = new Parser\Traverser\Traverser(new Parser\Test\Double\Traverser\KeepingVisitor());
 
         try {
             $traverser->traverse($array);
 
             self::fail('Expected CyclicNodeDetected to be thrown.');
-        } catch (CyclicNodeDetected $exception) {
+        } catch (Parser\CyclicNodeDetected $cyclicNodeDetected) {
             $object->replacePropertyAt(
-                Index::fromInt(0),
-                Node\ObjectProperty::create(
+                Parser\Index::fromInt(0),
+                Parser\Node\ObjectProperty::create(
                     $name,
-                    Node\NullNode::create(),
+                    Parser\Node\NullNode::create(),
                 ),
             );
         }
@@ -164,26 +150,26 @@ final class TraverserTest extends Framework\TestCase
 
     public function testTraverseForgetsContainersWhenThrowingCyclicNodeDetectedForObjectNode(): void
     {
-        $name = Node\StringNode::fromString(self::faker()->word());
+        $name = Parser\Node\StringNode::fromString(self::faker()->word());
 
-        $array = Node\ArrayNode::create();
-        $object = Node\ObjectNode::create(Node\ObjectProperty::create(
+        $array = Parser\Node\ArrayNode::create();
+        $object = Parser\Node\ObjectNode::create(Parser\Node\ObjectProperty::create(
             $name,
             $array,
         ));
 
         $array->addElement($object);
 
-        $traverser = new Traverser\Traverser(new Test\Double\Traverser\KeepingVisitor());
+        $traverser = new Parser\Traverser\Traverser(new Parser\Test\Double\Traverser\KeepingVisitor());
 
         try {
             $traverser->traverse($object);
 
             self::fail('Expected CyclicNodeDetected to be thrown.');
-        } catch (CyclicNodeDetected $exception) {
+        } catch (Parser\CyclicNodeDetected $cyclicNodeDetected) {
             $array->replaceElementAt(
-                Index::fromInt(0),
-                Node\NullNode::create(),
+                Parser\Index::fromInt(0),
+                Parser\Node\NullNode::create(),
             );
         }
 
@@ -198,14 +184,14 @@ final class TraverserTest extends Framework\TestCase
 
         $node = self::parse('{"a":["x"]}');
 
-        $traverser = new Traverser\Traverser(new Test\Double\Traverser\ThrowingVisitor($throwable));
+        $traverser = new Parser\Traverser\Traverser(new Parser\Test\Double\Traverser\ThrowingVisitor($throwable));
 
         try {
             $traverser->traverse($node);
 
             self::fail('Expected the throwable to be thrown.');
-        } catch (\RuntimeException $exception) {
-            self::assertSame($throwable, $exception);
+        } catch (\RuntimeException $runtimeException) {
+            self::assertSame($throwable, $runtimeException);
         }
 
         $traversed = $traverser->traverse($node);
@@ -217,12 +203,12 @@ final class TraverserTest extends Framework\TestCase
     {
         $node = self::parse('{"a":[1]}');
 
-        $visitor = new Test\Double\Traverser\NestedTraversalVisitor(
+        $visitor = new Parser\Test\Double\Traverser\NestedTraversalVisitor(
             '/a/0',
             $node,
         );
 
-        $traverser = new Traverser\Traverser($visitor);
+        $traverser = new Parser\Traverser\Traverser($visitor);
 
         $visitor->setTraverser($traverser);
 
@@ -234,9 +220,9 @@ final class TraverserTest extends Framework\TestCase
 
     public function testTraverseEntersAndLeavesNodesInDocumentOrder(): void
     {
-        $log = new Test\Double\Traverser\Log();
+        $log = new Parser\Test\Double\Traverser\Log();
 
-        $visitor = new Test\Double\Traverser\ScriptedVisitor(
+        $visitor = new Parser\Test\Double\Traverser\ScriptedVisitor(
             'visitor',
             $log,
             [],
@@ -244,7 +230,7 @@ final class TraverserTest extends Framework\TestCase
         );
         $node = self::parse('{"name":"foo","keywords":["json"]}');
 
-        $traverser = new Traverser\Traverser($visitor);
+        $traverser = new Parser\Traverser\Traverser($visitor);
 
         $traversed = $traverser->traverse($node);
 
@@ -265,15 +251,15 @@ final class TraverserTest extends Framework\TestCase
 
     public function testTraverseCallsVisitorsInOrderOfRegistration(): void
     {
-        $log = new Test\Double\Traverser\Log();
+        $log = new Parser\Test\Double\Traverser\Log();
 
-        $first = new Test\Double\Traverser\ScriptedVisitor(
+        $first = new Parser\Test\Double\Traverser\ScriptedVisitor(
             'first',
             $log,
             [],
             [],
         );
-        $second = new Test\Double\Traverser\ScriptedVisitor(
+        $second = new Parser\Test\Double\Traverser\ScriptedVisitor(
             'second',
             $log,
             [],
@@ -281,7 +267,7 @@ final class TraverserTest extends Framework\TestCase
         );
         $node = self::parse('[1]');
 
-        $traverser = new Traverser\Traverser(
+        $traverser = new Parser\Traverser\Traverser(
             $first,
             $second,
         );
@@ -304,19 +290,19 @@ final class TraverserTest extends Framework\TestCase
 
     public function testTraverseReturnsReplacementWhenVisitorReplacesRootNode(): void
     {
-        $replacement = Node\ArrayNode::create();
+        $replacement = Parser\Node\ArrayNode::create();
 
-        $visitor = new Test\Double\Traverser\ScriptedVisitor(
+        $visitor = new Parser\Test\Double\Traverser\ScriptedVisitor(
             'visitor',
-            new Test\Double\Traverser\Log(),
+            new Parser\Test\Double\Traverser\Log(),
             [
-                '"" {}' => Traverser\EnterAction::replace($replacement),
+                '"" {}' => Parser\Traverser\EnterAction::replace($replacement),
             ],
             [],
         );
         $node = self::parse('{}');
 
-        $traverser = new Traverser\Traverser($visitor);
+        $traverser = new Parser\Traverser\Traverser($visitor);
 
         $traversed = $traverser->traverse($node);
 
@@ -325,17 +311,17 @@ final class TraverserTest extends Framework\TestCase
 
     public function testTraverseReplacesNodeWhenVisitorReplacesNodeWhenEntering(): void
     {
-        $log = new Test\Double\Traverser\Log();
+        $log = new Parser\Test\Double\Traverser\Log();
 
-        $first = new Test\Double\Traverser\ScriptedVisitor(
+        $first = new Parser\Test\Double\Traverser\ScriptedVisitor(
             'first',
             $log,
             [
-                '"/keywords" ["json"]' => Traverser\EnterAction::replace(self::parse('["json","parser"]')),
+                '"/keywords" ["json"]' => Parser\Traverser\EnterAction::replace(self::parse('["json","parser"]')),
             ],
             [],
         );
-        $second = new Test\Double\Traverser\ScriptedVisitor(
+        $second = new Parser\Test\Double\Traverser\ScriptedVisitor(
             'second',
             $log,
             [],
@@ -343,7 +329,7 @@ final class TraverserTest extends Framework\TestCase
         );
         $node = self::parse('{"keywords":["json"]}');
 
-        $traverser = new Traverser\Traverser(
+        $traverser = new Parser\Traverser\Traverser(
             $first,
             $second,
         );
@@ -376,17 +362,17 @@ final class TraverserTest extends Framework\TestCase
 
     public function testTraverseReplacesNodeWhenVisitorReplacesNodeWhenLeaving(): void
     {
-        $log = new Test\Double\Traverser\Log();
+        $log = new Parser\Test\Double\Traverser\Log();
 
-        $first = new Test\Double\Traverser\ScriptedVisitor(
+        $first = new Parser\Test\Double\Traverser\ScriptedVisitor(
             'first',
             $log,
             [],
             [
-                '"/keywords" ["json"]' => Traverser\LeaveAction::replace(self::parse('["json","parser"]')),
+                '"/keywords" ["json"]' => Parser\Traverser\LeaveAction::replace(self::parse('["json","parser"]')),
             ],
         );
-        $second = new Test\Double\Traverser\ScriptedVisitor(
+        $second = new Parser\Test\Double\Traverser\ScriptedVisitor(
             'second',
             $log,
             [],
@@ -394,7 +380,7 @@ final class TraverserTest extends Framework\TestCase
         );
         $node = self::parse('{"keywords":["json"]}');
 
-        $traverser = new Traverser\Traverser(
+        $traverser = new Parser\Traverser\Traverser(
             $first,
             $second,
         );
@@ -422,17 +408,17 @@ final class TraverserTest extends Framework\TestCase
 
     public function testTraverseRemovesElementWhenVisitorRemovesElementWhenEntering(): void
     {
-        $log = new Test\Double\Traverser\Log();
+        $log = new Parser\Test\Double\Traverser\Log();
 
-        $first = new Test\Double\Traverser\ScriptedVisitor(
+        $first = new Parser\Test\Double\Traverser\ScriptedVisitor(
             'first',
             $log,
             [
-                '"/1" "bar"' => Traverser\EnterAction::remove(),
+                '"/1" "bar"' => Parser\Traverser\EnterAction::remove(),
             ],
             [],
         );
-        $second = new Test\Double\Traverser\ScriptedVisitor(
+        $second = new Parser\Test\Double\Traverser\ScriptedVisitor(
             'second',
             $log,
             [],
@@ -440,7 +426,7 @@ final class TraverserTest extends Framework\TestCase
         );
         $node = self::parse('["foo","bar","baz"]');
 
-        $traverser = new Traverser\Traverser(
+        $traverser = new Parser\Traverser\Traverser(
             $first,
             $second,
         );
@@ -469,17 +455,17 @@ final class TraverserTest extends Framework\TestCase
 
     public function testTraverseRemovesElementWhenVisitorRemovesElementWhenLeaving(): void
     {
-        $log = new Test\Double\Traverser\Log();
+        $log = new Parser\Test\Double\Traverser\Log();
 
-        $first = new Test\Double\Traverser\ScriptedVisitor(
+        $first = new Parser\Test\Double\Traverser\ScriptedVisitor(
             'first',
             $log,
             [],
             [
-                '"/1" "bar"' => Traverser\LeaveAction::remove(),
+                '"/1" "bar"' => Parser\Traverser\LeaveAction::remove(),
             ],
         );
-        $second = new Test\Double\Traverser\ScriptedVisitor(
+        $second = new Parser\Test\Double\Traverser\ScriptedVisitor(
             'second',
             $log,
             [],
@@ -487,7 +473,7 @@ final class TraverserTest extends Framework\TestCase
         );
         $node = self::parse('["foo","bar","baz"]');
 
-        $traverser = new Traverser\Traverser(
+        $traverser = new Parser\Traverser\Traverser(
             $first,
             $second,
         );
@@ -518,17 +504,17 @@ final class TraverserTest extends Framework\TestCase
 
     public function testTraverseRemovesPropertyWhenVisitorRemovesValueWhenEntering(): void
     {
-        $log = new Test\Double\Traverser\Log();
+        $log = new Parser\Test\Double\Traverser\Log();
 
-        $first = new Test\Double\Traverser\ScriptedVisitor(
+        $first = new Parser\Test\Double\Traverser\ScriptedVisitor(
             'first',
             $log,
             [
-                '"/b" "bar"' => Traverser\EnterAction::remove(),
+                '"/b" "bar"' => Parser\Traverser\EnterAction::remove(),
             ],
             [],
         );
-        $second = new Test\Double\Traverser\ScriptedVisitor(
+        $second = new Parser\Test\Double\Traverser\ScriptedVisitor(
             'second',
             $log,
             [],
@@ -536,7 +522,7 @@ final class TraverserTest extends Framework\TestCase
         );
         $node = self::parse('{"a":"foo","b":"bar","c":"baz"}');
 
-        $traverser = new Traverser\Traverser(
+        $traverser = new Parser\Traverser\Traverser(
             $first,
             $second,
         );
@@ -565,17 +551,17 @@ final class TraverserTest extends Framework\TestCase
 
     public function testTraverseRemovesPropertyWhenVisitorRemovesValueWhenLeaving(): void
     {
-        $log = new Test\Double\Traverser\Log();
+        $log = new Parser\Test\Double\Traverser\Log();
 
-        $first = new Test\Double\Traverser\ScriptedVisitor(
+        $first = new Parser\Test\Double\Traverser\ScriptedVisitor(
             'first',
             $log,
             [],
             [
-                '"/b" "bar"' => Traverser\LeaveAction::remove(),
+                '"/b" "bar"' => Parser\Traverser\LeaveAction::remove(),
             ],
         );
-        $second = new Test\Double\Traverser\ScriptedVisitor(
+        $second = new Parser\Test\Double\Traverser\ScriptedVisitor(
             'second',
             $log,
             [],
@@ -583,7 +569,7 @@ final class TraverserTest extends Framework\TestCase
         );
         $node = self::parse('{"a":"foo","b":"bar","c":"baz"}');
 
-        $traverser = new Traverser\Traverser(
+        $traverser = new Parser\Traverser\Traverser(
             $first,
             $second,
         );
@@ -614,17 +600,17 @@ final class TraverserTest extends Framework\TestCase
 
     public function testTraverseSkipsChildrenOnlyForVisitorThatSkipsChildren(): void
     {
-        $log = new Test\Double\Traverser\Log();
+        $log = new Parser\Test\Double\Traverser\Log();
 
-        $first = new Test\Double\Traverser\ScriptedVisitor(
+        $first = new Parser\Test\Double\Traverser\ScriptedVisitor(
             'first',
             $log,
             [
-                '"/keywords" ["json"]' => Traverser\EnterAction::skipChildren(),
+                '"/keywords" ["json"]' => Parser\Traverser\EnterAction::skipChildren(),
             ],
             [],
         );
-        $second = new Test\Double\Traverser\ScriptedVisitor(
+        $second = new Parser\Test\Double\Traverser\ScriptedVisitor(
             'second',
             $log,
             [],
@@ -632,7 +618,7 @@ final class TraverserTest extends Framework\TestCase
         );
         $node = self::parse('{"keywords":["json"]}');
 
-        $traverser = new Traverser\Traverser(
+        $traverser = new Parser\Traverser\Traverser(
             $first,
             $second,
         );
@@ -657,13 +643,13 @@ final class TraverserTest extends Framework\TestCase
 
     public function testTraverseDoesNotTraverseChildrenWhenEveryVisitorSkipsChildren(): void
     {
-        $first = new Test\Double\Traverser\SkippingVisitor();
-        $second = new Test\Double\Traverser\SkippingVisitor();
-        $node = Node\ArrayNode::create();
+        $first = new Parser\Test\Double\Traverser\SkippingVisitor();
+        $second = new Parser\Test\Double\Traverser\SkippingVisitor();
+        $node = Parser\Node\ArrayNode::create();
 
         $node->addElement($node);
 
-        $traverser = new Traverser\Traverser(
+        $traverser = new Parser\Traverser\Traverser(
             $first,
             $second,
         );
@@ -675,17 +661,17 @@ final class TraverserTest extends Framework\TestCase
 
     public function testTraverseReplacesElementWhenVisitorReplacesElementWhenEntering(): void
     {
-        $visitor = new Test\Double\Traverser\ScriptedVisitor(
+        $visitor = new Parser\Test\Double\Traverser\ScriptedVisitor(
             'visitor',
-            new Test\Double\Traverser\Log(),
+            new Parser\Test\Double\Traverser\Log(),
             [
-                '"/1" "bar"' => Traverser\EnterAction::replace(Node\StringNode::fromString('qux')),
+                '"/1" "bar"' => Parser\Traverser\EnterAction::replace(Parser\Node\StringNode::fromString('qux')),
             ],
             [],
         );
         $node = self::parse('["foo","bar","baz"]');
 
-        $traverser = new Traverser\Traverser($visitor);
+        $traverser = new Parser\Traverser\Traverser($visitor);
 
         $traversed = $traverser->traverse($node);
 
@@ -694,26 +680,26 @@ final class TraverserTest extends Framework\TestCase
 
     public function testTraverseKeepsObjectPropertyWhenValueIsNotReplaced(): void
     {
-        $visitor = new Test\Double\Traverser\KeepingVisitor();
-        $property = Node\ObjectProperty::create(
-            Node\StringNode::fromString(self::faker()->word()),
-            Node\NullNode::create(),
+        $visitor = new Parser\Test\Double\Traverser\KeepingVisitor();
+        $property = Parser\Node\ObjectProperty::create(
+            Parser\Node\StringNode::fromString(self::faker()->word()),
+            Parser\Node\NullNode::create(),
         );
-        $node = Node\ObjectNode::create($property);
+        $node = Parser\Node\ObjectNode::create($property);
 
-        $traverser = new Traverser\Traverser($visitor);
+        $traverser = new Parser\Traverser\Traverser($visitor);
 
         $traverser->traverse($node);
 
-        self::assertSame($property, $node->propertyAt(Index::fromInt(0)));
+        self::assertSame($property, $node->propertyAt(Parser\Index::fromInt(0)));
     }
 
     public function testTraversePassesPathsWithIndexWhenPropertiesHaveSameName(): void
     {
-        $visitor = new Test\Double\Traverser\PathRecordingVisitor();
+        $visitor = new Parser\Test\Double\Traverser\PathRecordingVisitor();
         $node = self::parse('{"a~/b":1,"a~/b":2}');
 
-        $traverser = new Traverser\Traverser($visitor);
+        $traverser = new Parser\Traverser\Traverser($visitor);
 
         $traverser->traverse($node);
 
@@ -722,15 +708,15 @@ final class TraverserTest extends Framework\TestCase
         $first = $paths[1];
         $second = $paths[2];
 
-        self::assertInstanceOf(Index::class, $first->index());
+        self::assertInstanceOf(Parser\Index::class, $first->index());
         self::assertSame(0, $first->index()->toInt());
-        self::assertInstanceOf(Node\StringNode::class, $first->name());
+        self::assertInstanceOf(Parser\Node\StringNode::class, $first->name());
         self::assertSame('a~/b', $first->name()->toString());
         self::assertSame('/a~0~1b', $first->toJsonPointer()->toJsonString());
 
-        self::assertInstanceOf(Index::class, $second->index());
+        self::assertInstanceOf(Parser\Index::class, $second->index());
         self::assertSame(1, $second->index()->toInt());
-        self::assertInstanceOf(Node\StringNode::class, $second->name());
+        self::assertInstanceOf(Parser\Node\StringNode::class, $second->name());
         self::assertSame('a~/b', $second->name()->toString());
         self::assertSame('/a~0~1b', $second->toJsonPointer()->toJsonString());
     }
@@ -762,22 +748,22 @@ final class TraverserTest extends Framework\TestCase
             }
             EOD;
 
-        $format = Format::create(
-            Indent::create(
-                IndentSize::fromInt(4),
-                IndentStyle::space(),
+        $format = Parser\Format::create(
+            Parser\Indent::create(
+                Parser\IndentSize::fromInt(4),
+                Parser\IndentStyle::space(),
             ),
-            NewLine::lf(),
-            FinalNewLine::none(),
+            Parser\NewLine::lf(),
+            Parser\FinalNewLine::none(),
         );
 
         $node = self::parse($json);
 
-        $traverser = new Traverser\Traverser(new Test\Double\Traverser\SortingVisitor());
+        $traverser = new Parser\Traverser\Traverser(new Parser\Test\Double\Traverser\SortingVisitor());
 
         $traversed = $traverser->traverse($node);
 
-        $printer = new Printer();
+        $printer = new Parser\Printer();
 
         $printed = $printer->print(
             $traversed,
@@ -812,23 +798,23 @@ final class TraverserTest extends Framework\TestCase
         self::assertSame($expected, $printed);
     }
 
-    private static function parse(string $json): Node\Node
+    private static function parse(string $json): Parser\Node\Node
     {
-        $parser = new Parser();
+        $parser = new Parser\Parser();
 
         return $parser->parse(
-            Raw::fromString($json),
-            MaximumDepth::default(),
+            Parser\Raw::fromString($json),
+            Parser\MaximumDepth::default(),
         );
     }
 
-    private static function print(Node\Node $node): string
+    private static function print(Parser\Node\Node $node): string
     {
-        $printer = new Printer();
+        $printer = new Parser\Printer();
 
         return $printer->print(
             $node,
-            Format::compact(),
+            Parser\Format::compact(),
         );
     }
 }

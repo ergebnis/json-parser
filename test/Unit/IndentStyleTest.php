@@ -13,7 +13,7 @@ declare(strict_types=1);
 
 namespace Ergebnis\Json\Parser\Test\Unit;
 
-use Ergebnis\Json\Parser\IndentStyle;
+use Ergebnis\Json\Parser;
 use PHPUnit\Framework;
 
 /**
@@ -23,14 +23,14 @@ final class IndentStyleTest extends Framework\TestCase
 {
     public function testSpaceReturnsIndentStyle(): void
     {
-        $indentStyle = IndentStyle::space();
+        $indentStyle = Parser\IndentStyle::space();
 
         self::assertSame(' ', $indentStyle->toString());
     }
 
     public function testTabReturnsIndentStyle(): void
     {
-        $indentStyle = IndentStyle::tab();
+        $indentStyle = Parser\IndentStyle::tab();
 
         self::assertSame("\t", $indentStyle->toString());
     }
