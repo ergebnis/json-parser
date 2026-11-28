@@ -13,9 +13,7 @@ declare(strict_types=1);
 
 namespace Ergebnis\Json\Parser\Test\Unit\Node;
 
-use Ergebnis\Json\Parser\Index;
-use Ergebnis\Json\Parser\Node;
-use Ergebnis\Json\Parser\Test;
+use Ergebnis\Json\Parser;
 use PHPUnit\Framework;
 
 /**
@@ -28,11 +26,11 @@ use PHPUnit\Framework;
  */
 final class ArrayNodeTest extends Framework\TestCase
 {
-    use Test\Util\Helper;
+    use Parser\Test\Util\Helper;
 
     public function testCreateReturnsArrayNodeWithoutElements(): void
     {
-        $node = Node\ArrayNode::create();
+        $node = Parser\Node\ArrayNode::create();
 
         self::assertSame([], $node->elements());
     }
@@ -41,18 +39,18 @@ final class ArrayNodeTest extends Framework\TestCase
     {
         $faker = self::faker();
 
-        $elements = \array_map(static function () use ($faker): Node\Node {
-            return Node\StringNode::fromString($faker->sentence());
+        $elements = \array_map(static function () use ($faker): Parser\Node\Node {
+            return Parser\Node\StringNode::fromString($faker->sentence());
         }, \range(0, 4));
 
-        $node = Node\ArrayNode::create(...$elements);
+        $node = Parser\Node\ArrayNode::create(...$elements);
 
         self::assertSame($elements, $node->elements());
     }
 
     public function testCountReturnsCountWhenArrayNodeHasNoElements(): void
     {
-        $node = Node\ArrayNode::create();
+        $node = Parser\Node\ArrayNode::create();
 
         self::assertSame(0, $node->count());
     }
@@ -63,42 +61,42 @@ final class ArrayNodeTest extends Framework\TestCase
 
         $count = $faker->numberBetween(1, 10);
 
-        $elements = \array_map(static function () use ($faker): Node\Node {
-            return Node\StringNode::fromString($faker->sentence());
+        $elements = \array_map(static function () use ($faker): Parser\Node\Node {
+            return Parser\Node\StringNode::fromString($faker->sentence());
         }, \range(1, $count));
 
-        $node = Node\ArrayNode::create(...$elements);
+        $node = Parser\Node\ArrayNode::create(...$elements);
 
         self::assertSame($count, $node->count());
     }
 
     public function testElementAtThrowsElementDoesNotExistWhenElementDoesNotExistAtIndex(): void
     {
-        $index = Index::fromInt(0);
+        $index = Parser\Index::fromInt(0);
 
-        $node = Node\ArrayNode::create();
+        $node = Parser\Node\ArrayNode::create();
 
-        $this->expectException(Node\ElementDoesNotExist::class);
+        $this->expectException(Parser\Node\ElementDoesNotExist::class);
 
         $node->elementAt($index);
     }
 
     public function testElementAtReturnsElementAtIndex(): void
     {
-        $index = Index::fromInt(0);
-        $element = Node\NullNode::create();
+        $index = Parser\Index::fromInt(0);
+        $element = Parser\Node\NullNode::create();
 
-        $node = Node\ArrayNode::create($element);
+        $node = Parser\Node\ArrayNode::create($element);
 
         self::assertSame($element, $node->elementAt($index));
     }
 
     public function testAddElementAppendsElement(): void
     {
-        $one = Node\NullNode::create();
-        $two = Node\NullNode::create();
+        $one = Parser\Node\NullNode::create();
+        $two = Parser\Node\NullNode::create();
 
-        $node = Node\ArrayNode::create();
+        $node = Parser\Node\ArrayNode::create();
 
         $node->addElement($one);
         $node->addElement($two);
@@ -113,12 +111,12 @@ final class ArrayNodeTest extends Framework\TestCase
 
     public function testInsertElementAtThrowsElementDoesNotExistWhenElementDoesNotExistAtIndex(): void
     {
-        $index = Index::fromInt(0);
-        $element = Node\NullNode::create();
+        $index = Parser\Index::fromInt(0);
+        $element = Parser\Node\NullNode::create();
 
-        $node = Node\ArrayNode::create();
+        $node = Parser\Node\ArrayNode::create();
 
-        $this->expectException(Node\ElementDoesNotExist::class);
+        $this->expectException(Parser\Node\ElementDoesNotExist::class);
 
         $node->insertElementAt(
             $index,
@@ -130,14 +128,14 @@ final class ArrayNodeTest extends Framework\TestCase
     {
         $faker = self::faker();
 
-        $index = Index::fromInt(1);
-        $element = Node\StringNode::fromString($faker->sentence());
+        $index = Parser\Index::fromInt(1);
+        $element = Parser\Node\StringNode::fromString($faker->sentence());
 
-        $one = Node\StringNode::fromString($faker->sentence());
-        $two = Node\StringNode::fromString($faker->sentence());
-        $three = Node\StringNode::fromString($faker->sentence());
+        $one = Parser\Node\StringNode::fromString($faker->sentence());
+        $two = Parser\Node\StringNode::fromString($faker->sentence());
+        $three = Parser\Node\StringNode::fromString($faker->sentence());
 
-        $node = Node\ArrayNode::create(
+        $node = Parser\Node\ArrayNode::create(
             $one,
             $two,
             $three,
@@ -160,11 +158,11 @@ final class ArrayNodeTest extends Framework\TestCase
 
     public function testRemoveElementAtThrowsElementDoesNotExistWhenElementDoesNotExistAtIndex(): void
     {
-        $index = Index::fromInt(0);
+        $index = Parser\Index::fromInt(0);
 
-        $node = Node\ArrayNode::create();
+        $node = Parser\Node\ArrayNode::create();
 
-        $this->expectException(Node\ElementDoesNotExist::class);
+        $this->expectException(Parser\Node\ElementDoesNotExist::class);
 
         $node->removeElementAt($index);
     }
@@ -173,17 +171,17 @@ final class ArrayNodeTest extends Framework\TestCase
     {
         $faker = self::faker();
 
-        $one = Node\StringNode::fromString($faker->sentence());
-        $two = Node\StringNode::fromString($faker->sentence());
-        $three = Node\StringNode::fromString($faker->sentence());
+        $one = Parser\Node\StringNode::fromString($faker->sentence());
+        $two = Parser\Node\StringNode::fromString($faker->sentence());
+        $three = Parser\Node\StringNode::fromString($faker->sentence());
 
-        $node = Node\ArrayNode::create(
+        $node = Parser\Node\ArrayNode::create(
             $one,
             $two,
             $three,
         );
 
-        $node->removeElementAt(Index::fromInt(1));
+        $node->removeElementAt(Parser\Index::fromInt(1));
 
         $expected = [
             $one,
@@ -192,18 +190,18 @@ final class ArrayNodeTest extends Framework\TestCase
 
         self::assertSame($expected, $node->elements());
 
-        self::assertSame($one, $node->elementAt(Index::fromInt(0)));
-        self::assertSame($three, $node->elementAt(Index::fromInt(1)));
+        self::assertSame($one, $node->elementAt(Parser\Index::fromInt(0)));
+        self::assertSame($three, $node->elementAt(Parser\Index::fromInt(1)));
     }
 
     public function testReplaceElementAtThrowsElementDoesNotExistWhenElementDoesNotExistAtIndex(): void
     {
-        $index = Index::fromInt(0);
-        $element = Node\NullNode::create();
+        $index = Parser\Index::fromInt(0);
+        $element = Parser\Node\NullNode::create();
 
-        $node = Node\ArrayNode::create();
+        $node = Parser\Node\ArrayNode::create();
 
-        $this->expectException(Node\ElementDoesNotExist::class);
+        $this->expectException(Parser\Node\ElementDoesNotExist::class);
 
         $node->replaceElementAt(
             $index,
@@ -215,14 +213,14 @@ final class ArrayNodeTest extends Framework\TestCase
     {
         $faker = self::faker();
 
-        $index = Index::fromInt(2);
-        $element = Node\StringNode::fromString($faker->sentence());
+        $index = Parser\Index::fromInt(2);
+        $element = Parser\Node\StringNode::fromString($faker->sentence());
 
-        $elements = \array_map(static function () use ($faker): Node\Node {
-            return Node\StringNode::fromString($faker->sentence());
+        $elements = \array_map(static function () use ($faker): Parser\Node\Node {
+            return Parser\Node\StringNode::fromString($faker->sentence());
         }, \range(0, 4));
 
-        $node = Node\ArrayNode::create(...$elements);
+        $node = Parser\Node\ArrayNode::create(...$elements);
 
         $node->replaceElementAt(
             $index,

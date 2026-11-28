@@ -13,8 +13,7 @@ declare(strict_types=1);
 
 namespace Ergebnis\Json\Parser\Test\Unit;
 
-use Ergebnis\Json\Parser\InvalidMaximumDepth;
-use Ergebnis\Json\Parser\Test;
+use Ergebnis\Json\Parser;
 use PHPUnit\Framework;
 
 /**
@@ -22,13 +21,13 @@ use PHPUnit\Framework;
  */
 final class InvalidMaximumDepthTest extends Framework\TestCase
 {
-    use Test\Util\Helper;
+    use Parser\Test\Util\Helper;
 
     public function testNotGreaterThanZeroReturnsInvalidMaximumDepth(): void
     {
         $value = self::faker()->numberBetween(-100, 0);
 
-        $exception = InvalidMaximumDepth::notGreaterThanZero($value);
+        $exception = Parser\InvalidMaximumDepth::notGreaterThanZero($value);
 
         $message = \sprintf(
             'Maximum depth %d must be greater than 0.',
@@ -45,7 +44,7 @@ final class InvalidMaximumDepthTest extends Framework\TestCase
         $value = $faker->numberBetween(1, 100);
         $limit = $faker->numberBetween(101, 200);
 
-        $exception = InvalidMaximumDepth::greaterThanLimit(
+        $exception = Parser\InvalidMaximumDepth::greaterThanLimit(
             $value,
             $limit,
         );

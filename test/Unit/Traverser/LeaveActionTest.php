@@ -13,8 +13,7 @@ declare(strict_types=1);
 
 namespace Ergebnis\Json\Parser\Test\Unit\Traverser;
 
-use Ergebnis\Json\Parser\Node;
-use Ergebnis\Json\Parser\Traverser;
+use Ergebnis\Json\Parser;
 use PHPUnit\Framework;
 
 /**
@@ -26,27 +25,27 @@ final class LeaveActionTest extends Framework\TestCase
 {
     public function testKeepReturnsLeaveAction(): void
     {
-        $action = Traverser\LeaveAction::keep();
+        $action = Parser\Traverser\LeaveAction::keep();
 
         self::assertFalse($action->isRemove());
         self::assertNull($action->replacement());
-        self::assertSame($action, Traverser\LeaveAction::keep());
+        self::assertSame($action, Parser\Traverser\LeaveAction::keep());
     }
 
     public function testRemoveReturnsLeaveAction(): void
     {
-        $action = Traverser\LeaveAction::remove();
+        $action = Parser\Traverser\LeaveAction::remove();
 
         self::assertTrue($action->isRemove());
         self::assertNull($action->replacement());
-        self::assertSame($action, Traverser\LeaveAction::remove());
+        self::assertSame($action, Parser\Traverser\LeaveAction::remove());
     }
 
     public function testReplaceReturnsLeaveAction(): void
     {
-        $node = Node\NullNode::create();
+        $node = Parser\Node\NullNode::create();
 
-        $action = Traverser\LeaveAction::replace($node);
+        $action = Parser\Traverser\LeaveAction::replace($node);
 
         self::assertFalse($action->isRemove());
         self::assertSame($node, $action->replacement());

@@ -13,24 +13,22 @@ declare(strict_types=1);
 
 namespace Ergebnis\Json\Parser\Test\Benchmark;
 
-use Ergebnis\Json\Parser\MaximumDepth;
-use Ergebnis\Json\Parser\Parser;
-use Ergebnis\Json\Parser\Raw;
+use Ergebnis\Json\Parser;
 
 final class ParserBench
 {
-    private Raw $raw;
-    private MaximumDepth $maximumDepth;
-    private Parser $parser;
+    private Parser\Raw $raw;
+    private Parser\MaximumDepth $maximumDepth;
+    private Parser\Parser $parser;
 
     /**
      * @param array{fixture: string} $parameters
      */
     public function setUp(array $parameters): void
     {
-        $this->raw = Raw::fromString(Fixture::json($parameters['fixture']));
-        $this->maximumDepth = MaximumDepth::fromInt(4096);
-        $this->parser = new Parser();
+        $this->raw = Parser\Raw::fromString(Fixture::json($parameters['fixture']));
+        $this->maximumDepth = Parser\MaximumDepth::fromInt(4096);
+        $this->parser = new Parser\Parser();
     }
 
     /**

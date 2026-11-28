@@ -13,8 +13,7 @@ declare(strict_types=1);
 
 namespace Ergebnis\Json\Parser\Test\Unit;
 
-use Ergebnis\Json\Parser\InvalidIndex;
-use Ergebnis\Json\Parser\Test;
+use Ergebnis\Json\Parser;
 use PHPUnit\Framework;
 
 /**
@@ -22,13 +21,13 @@ use PHPUnit\Framework;
  */
 final class InvalidIndexTest extends Framework\TestCase
 {
-    use Test\Util\Helper;
+    use Parser\Test\Util\Helper;
 
     public function testLessThanZeroReturnsInvalidIndex(): void
     {
         $index = self::faker()->numberBetween(-100, -1);
 
-        $exception = InvalidIndex::lessThanZero($index);
+        $exception = Parser\InvalidIndex::lessThanZero($index);
 
         $message = \sprintf(
             'Index %d must not be negative.',

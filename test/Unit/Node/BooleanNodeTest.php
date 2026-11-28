@@ -13,8 +13,7 @@ declare(strict_types=1);
 
 namespace Ergebnis\Json\Parser\Test\Unit\Node;
 
-use Ergebnis\Json\Parser\Node;
-use Ergebnis\Json\Parser\Test;
+use Ergebnis\Json\Parser;
 use PHPUnit\Framework;
 
 /**
@@ -22,14 +21,14 @@ use PHPUnit\Framework;
  */
 final class BooleanNodeTest extends Framework\TestCase
 {
-    use Test\Util\Helper;
+    use Parser\Test\Util\Helper;
 
     /**
      * @dataProvider provideValue
      */
     public function testFromBoolReturnsBooleanNode(bool $value): void
     {
-        $node = Node\BooleanNode::fromBool($value);
+        $node = Parser\Node\BooleanNode::fromBool($value);
 
         self::assertSame($value, $node->toBool());
     }
@@ -40,8 +39,8 @@ final class BooleanNodeTest extends Framework\TestCase
     public static function provideValue(): iterable
     {
         $values = [
-            'true' => true,
             'false' => false,
+            'true' => true,
         ];
 
         foreach ($values as $key => $value) {

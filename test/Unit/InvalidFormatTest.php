@@ -13,7 +13,7 @@ declare(strict_types=1);
 
 namespace Ergebnis\Json\Parser\Test\Unit;
 
-use Ergebnis\Json\Parser\InvalidFormat;
+use Ergebnis\Json\Parser;
 use PHPUnit\Framework;
 
 /**
@@ -23,14 +23,14 @@ final class InvalidFormatTest extends Framework\TestCase
 {
     public function testFinalNewLineWithoutNewLineReturnsInvalidFormat(): void
     {
-        $exception = InvalidFormat::finalNewLineWithoutNewLine();
+        $exception = Parser\InvalidFormat::finalNewLineWithoutNewLine();
 
         self::assertSame('A final new line requires a new line.', $exception->getMessage());
     }
 
     public function testIndentWithoutNewLineReturnsInvalidFormat(): void
     {
-        $exception = InvalidFormat::indentWithoutNewLine();
+        $exception = Parser\InvalidFormat::indentWithoutNewLine();
 
         self::assertSame('An indent requires a new line.', $exception->getMessage());
     }

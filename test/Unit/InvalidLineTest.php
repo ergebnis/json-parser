@@ -13,8 +13,7 @@ declare(strict_types=1);
 
 namespace Ergebnis\Json\Parser\Test\Unit;
 
-use Ergebnis\Json\Parser\InvalidLine;
-use Ergebnis\Json\Parser\Test;
+use Ergebnis\Json\Parser;
 use PHPUnit\Framework;
 
 /**
@@ -22,13 +21,13 @@ use PHPUnit\Framework;
  */
 final class InvalidLineTest extends Framework\TestCase
 {
-    use Test\Util\Helper;
+    use Parser\Test\Util\Helper;
 
     public function testNotGreaterThanZeroReturnsInvalidLine(): void
     {
         $value = self::faker()->numberBetween(-100, 0);
 
-        $exception = InvalidLine::notGreaterThanZero($value);
+        $exception = Parser\InvalidLine::notGreaterThanZero($value);
 
         $message = \sprintf(
             'Line %d must be greater than 0.',

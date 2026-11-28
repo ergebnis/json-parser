@@ -13,8 +13,8 @@ declare(strict_types=1);
 
 namespace Ergebnis\Json\Parser\Test\Double\Node;
 
-use Ergebnis\Json\Parser\Node;
+use Ergebnis\Json\Parser;
 
-final class CustomNode implements Node\Node
+final class CustomNode implements Parser\Node\Node
 {
 }

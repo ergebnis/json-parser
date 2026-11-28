@@ -13,7 +13,7 @@ declare(strict_types=1);
 
 namespace Ergebnis\Json\Parser\Node;
 
-use Ergebnis\Json\Parser\Index;
+use Ergebnis\Json\Parser;
 
 /**
  * @see https://datatracker.ietf.org/doc/html/rfc8259#section-4
@@ -51,7 +51,7 @@ final class ObjectNode implements Node
     /**
      * @throws PropertyDoesNotExist
      */
-    public function propertyAt(Index $index): ObjectProperty
+    public function propertyAt(Parser\Index $index): ObjectProperty
     {
         if (!\array_key_exists($index->toInt(), $this->properties)) {
             throw PropertyDoesNotExist::at($index);
@@ -69,7 +69,7 @@ final class ObjectNode implements Node
      * @throws PropertyDoesNotExist
      */
     public function insertPropertyAt(
-        Index $index,
+        Parser\Index $index,
         ObjectProperty $property
     ): void {
         if (!\array_key_exists($index->toInt(), $this->properties)) {
@@ -89,7 +89,7 @@ final class ObjectNode implements Node
     /**
      * @throws PropertyDoesNotExist
      */
-    public function removePropertyAt(Index $index): void
+    public function removePropertyAt(Parser\Index $index): void
     {
         if (!\array_key_exists($index->toInt(), $this->properties)) {
             throw PropertyDoesNotExist::at($index);
@@ -106,7 +106,7 @@ final class ObjectNode implements Node
      * @throws PropertyDoesNotExist
      */
     public function replacePropertyAt(
-        Index $index,
+        Parser\Index $index,
         ObjectProperty $property
     ): void {
         if (!\array_key_exists($index->toInt(), $this->properties)) {

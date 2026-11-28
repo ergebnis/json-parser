@@ -13,7 +13,7 @@ declare(strict_types=1);
 
 namespace Ergebnis\Json\Parser\Node;
 
-use Ergebnis\Json\Parser\Index;
+use Ergebnis\Json\Parser;
 
 /**
  * @see https://datatracker.ietf.org/doc/html/rfc8259#section-5
@@ -51,7 +51,7 @@ final class ArrayNode implements Node
     /**
      * @throws ElementDoesNotExist
      */
-    public function elementAt(Index $index): Node
+    public function elementAt(Parser\Index $index): Node
     {
         if (!\array_key_exists($index->toInt(), $this->elements)) {
             throw ElementDoesNotExist::at($index);
@@ -69,7 +69,7 @@ final class ArrayNode implements Node
      * @throws ElementDoesNotExist
      */
     public function insertElementAt(
-        Index $index,
+        Parser\Index $index,
         Node $element
     ): void {
         if (!\array_key_exists($index->toInt(), $this->elements)) {
@@ -89,7 +89,7 @@ final class ArrayNode implements Node
     /**
      * @throws ElementDoesNotExist
      */
-    public function removeElementAt(Index $index): void
+    public function removeElementAt(Parser\Index $index): void
     {
         if (!\array_key_exists($index->toInt(), $this->elements)) {
             throw ElementDoesNotExist::at($index);
@@ -106,7 +106,7 @@ final class ArrayNode implements Node
      * @throws ElementDoesNotExist
      */
     public function replaceElementAt(
-        Index $index,
+        Parser\Index $index,
         Node $element
     ): void {
         if (!\array_key_exists($index->toInt(), $this->elements)) {

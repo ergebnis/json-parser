@@ -13,8 +13,7 @@ declare(strict_types=1);
 
 namespace Ergebnis\Json\Parser\Test\Benchmark\Node;
 
-use Ergebnis\Json\Parser\Node;
-use Ergebnis\Json\Parser\Raw;
+use Ergebnis\Json\Parser;
 
 /**
  * @BeforeMethods("setUp")
@@ -24,7 +23,7 @@ final class NumberNodeBench
     private const COUNT = 100000;
 
     /**
-     * @var list<Raw>
+     * @var list<Parser\Raw>
      */
     private array $raws = [];
 
@@ -41,7 +40,7 @@ final class NumberNodeBench
     public function setUp(): void
     {
         for ($i = 0; self::COUNT > $i; ++$i) {
-            $this->raws[] = Raw::fromString(\sprintf(
+            $this->raws[] = Parser\Raw::fromString(\sprintf(
                 '%d.%d',
                 $i,
                 $i,
@@ -55,21 +54,21 @@ final class NumberNodeBench
     public function benchFromRaw(): void
     {
         foreach ($this->raws as $raw) {
-            Node\NumberNode::fromRaw($raw);
+            Parser\Node\NumberNode::fromRaw($raw);
         }
     }
 
     public function benchFromInt(): void
     {
         foreach ($this->ints as $int) {
-            Node\NumberNode::fromInt($int);
+            Parser\Node\NumberNode::fromInt($int);
         }
     }
 
     public function benchFromFloat(): void
     {
         foreach ($this->floats as $float) {
-            Node\NumberNode::fromFloat($float);
+            Parser\Node\NumberNode::fromFloat($float);
         }
     }
 }

@@ -13,8 +13,7 @@ declare(strict_types=1);
 
 namespace Ergebnis\Json\Parser\Test\Unit;
 
-use Ergebnis\Json\Parser\Column;
-use Ergebnis\Json\Parser\InvalidColumn;
+use Ergebnis\Json\Parser;
 use PHPUnit\Framework;
 
 /**
@@ -30,9 +29,9 @@ final class ColumnTest extends Framework\TestCase
      */
     public function testFromIntThrowsInvalidColumnWhenValueIsNotGreaterThanZero(int $value): void
     {
-        $this->expectException(InvalidColumn::class);
+        $this->expectException(Parser\InvalidColumn::class);
 
-        Column::fromInt($value);
+        Parser\Column::fromInt($value);
     }
 
     /**
@@ -40,7 +39,7 @@ final class ColumnTest extends Framework\TestCase
      */
     public function testFromIntReturnsColumnWhenValueIsGreaterThanZero(int $value): void
     {
-        $column = Column::fromInt($value);
+        $column = Parser\Column::fromInt($value);
 
         self::assertSame($value, $column->toInt());
     }

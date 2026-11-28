@@ -15,13 +15,6 @@ namespace Ergebnis\Json\Parser\Test\Unit;
 
 use Ergebnis\DataProvider;
 use Ergebnis\Json\Parser;
-use Ergebnis\Json\Parser\Format;
-use Ergebnis\Json\Parser\InvalidJson;
-use Ergebnis\Json\Parser\MaximumDepth;
-use Ergebnis\Json\Parser\Node;
-use Ergebnis\Json\Parser\Printer;
-use Ergebnis\Json\Parser\Raw;
-use Ergebnis\Json\Parser\Test;
 use PHPUnit\Framework;
 use Symfony\Component\Finder;
 
@@ -51,7 +44,7 @@ use Symfony\Component\Finder;
  */
 final class ParserTest extends Framework\TestCase
 {
-    use Test\Util\Helper;
+    use Parser\Test\Util\Helper;
 
     /**
      * @see https://github.com/nst/JSONTestSuite/tree/1ef36fa01286573e846ac449e8683f8833c5b26a/test_parsing
@@ -63,8 +56,8 @@ final class ParserTest extends Framework\TestCase
 
     public function testParseThrowsInvalidJsonForArraysExceedingMaximumDepth(): void
     {
-        $maximumDepth = MaximumDepth::fromInt(self::faker()->numberBetween(1, 20));
-        $raw = Raw::fromString(\str_repeat(
+        $maximumDepth = Parser\MaximumDepth::fromInt(self::faker()->numberBetween(1, 20));
+        $raw = Parser\Raw::fromString(\str_repeat(
             '[',
             $maximumDepth->toInt(),
         ) . \str_repeat(
@@ -74,7 +67,7 @@ final class ParserTest extends Framework\TestCase
 
         $parser = new Parser\Parser();
 
-        $this->expectException(InvalidJson::class);
+        $this->expectException(Parser\InvalidJson::class);
         $this->expectExceptionMessage(\sprintf(
             'Maximum depth of %d exceeded at line 1, column %d.',
             $maximumDepth->toInt(),
@@ -89,8 +82,8 @@ final class ParserTest extends Framework\TestCase
 
     public function testParseThrowsInvalidJsonForObjectsExceedingMaximumDepth(): void
     {
-        $maximumDepth = MaximumDepth::fromInt(self::faker()->numberBetween(1, 20));
-        $raw = Raw::fromString(\str_repeat(
+        $maximumDepth = Parser\MaximumDepth::fromInt(self::faker()->numberBetween(1, 20));
+        $raw = Parser\Raw::fromString(\str_repeat(
             '{"a":',
             $maximumDepth->toInt(),
         ) . '1' . \str_repeat(
@@ -100,7 +93,7 @@ final class ParserTest extends Framework\TestCase
 
         $parser = new Parser\Parser();
 
-        $this->expectException(InvalidJson::class);
+        $this->expectException(Parser\InvalidJson::class);
         $this->expectExceptionMessage(\sprintf(
             'Maximum depth of %d exceeded at line 1, column %d.',
             $maximumDepth->toInt(),
@@ -115,7 +108,7 @@ final class ParserTest extends Framework\TestCase
 
     public function testParseThrowsInvalidJsonForArraysExceedingDefaultMaximumDepth(): void
     {
-        $raw = Raw::fromString(\str_repeat(
+        $raw = Parser\Raw::fromString(\str_repeat(
             '[',
             512,
         ) . \str_repeat(
@@ -123,11 +116,11 @@ final class ParserTest extends Framework\TestCase
             512,
         ));
 
-        $maximumDepth = MaximumDepth::default();
+        $maximumDepth = Parser\MaximumDepth::default();
 
         $parser = new Parser\Parser();
 
-        $this->expectException(InvalidJson::class);
+        $this->expectException(Parser\InvalidJson::class);
         $this->expectExceptionMessage('Maximum depth of 512 exceeded at line 1, column 512.');
 
         $parser->parse(
@@ -138,8 +131,8 @@ final class ParserTest extends Framework\TestCase
 
     public function testParseParsesScalarWhenMaximumDepthIsOne(): void
     {
-        $raw = Raw::fromString('1');
-        $maximumDepth = MaximumDepth::fromInt(1);
+        $raw = Parser\Raw::fromString('1');
+        $maximumDepth = Parser\MaximumDepth::fromInt(1);
 
         $parser = new Parser\Parser();
 
@@ -148,15 +141,15 @@ final class ParserTest extends Framework\TestCase
             $maximumDepth,
         );
 
-        $expected = Node\NumberNode::fromRaw(Raw::fromString('1'));
+        $expected = Parser\Node\NumberNode::fromRaw(Parser\Raw::fromString('1'));
 
         self::assertEquals($expected, $node);
     }
 
     public function testParseParsesArraysAtMaximumDepth(): void
     {
-        $maximumDepth = MaximumDepth::fromInt(self::faker()->numberBetween(1, 20));
-        $raw = Raw::fromString(\str_repeat(
+        $maximumDepth = Parser\MaximumDepth::fromInt(self::faker()->numberBetween(1, 20));
+        $raw = Parser\Raw::fromString(\str_repeat(
             '[',
             $maximumDepth->toInt() - 1,
         ) . '1' . \str_repeat(
@@ -171,10 +164,10 @@ final class ParserTest extends Framework\TestCase
             $maximumDepth,
         );
 
-        $expected = Node\NumberNode::fromRaw(Raw::fromString('1'));
+        $expected = Parser\Node\NumberNode::fromRaw(Parser\Raw::fromString('1'));
 
         for ($depth = 1; $maximumDepth->toInt() > $depth; ++$depth) {
-            $expected = Node\ArrayNode::create($expected);
+            $expected = Parser\Node\ArrayNode::create($expected);
         }
 
         self::assertEquals($expected, $node);
@@ -182,8 +175,8 @@ final class ParserTest extends Framework\TestCase
 
     public function testParseParsesObjectsAtMaximumDepth(): void
     {
-        $maximumDepth = MaximumDepth::fromInt(self::faker()->numberBetween(1, 20));
-        $raw = Raw::fromString(\str_repeat(
+        $maximumDepth = Parser\MaximumDepth::fromInt(self::faker()->numberBetween(1, 20));
+        $raw = Parser\Raw::fromString(\str_repeat(
             '{"a":',
             $maximumDepth->toInt() - 1,
         ) . '1' . \str_repeat(
@@ -198,11 +191,11 @@ final class ParserTest extends Framework\TestCase
             $maximumDepth,
         );
 
-        $expected = Node\NumberNode::fromRaw(Raw::fromString('1'));
+        $expected = Parser\Node\NumberNode::fromRaw(Parser\Raw::fromString('1'));
 
         for ($depth = 1; $maximumDepth->toInt() > $depth; ++$depth) {
-            $expected = Node\ObjectNode::create(Node\ObjectProperty::create(
-                Node\StringNode::fromRaw(Raw::fromString('"a"')),
+            $expected = Parser\Node\ObjectNode::create(Parser\Node\ObjectProperty::create(
+                Parser\Node\StringNode::fromRaw(Parser\Raw::fromString('"a"')),
                 $expected,
             ));
         }
@@ -212,7 +205,7 @@ final class ParserTest extends Framework\TestCase
 
     public function testParseParsesArraysAtDefaultMaximumDepth(): void
     {
-        $raw = Raw::fromString(\str_repeat(
+        $raw = Parser\Raw::fromString(\str_repeat(
             '[',
             511,
         ) . '1' . \str_repeat(
@@ -220,7 +213,7 @@ final class ParserTest extends Framework\TestCase
             511,
         ));
 
-        $maximumDepth = MaximumDepth::default();
+        $maximumDepth = Parser\MaximumDepth::default();
 
         $parser = new Parser\Parser();
 
@@ -229,10 +222,10 @@ final class ParserTest extends Framework\TestCase
             $maximumDepth,
         );
 
-        $expected = Node\NumberNode::fromRaw(Raw::fromString('1'));
+        $expected = Parser\Node\NumberNode::fromRaw(Parser\Raw::fromString('1'));
 
         for ($depth = 1; 512 > $depth; ++$depth) {
-            $expected = Node\ArrayNode::create($expected);
+            $expected = Parser\Node\ArrayNode::create($expected);
         }
 
         self::assertEquals($expected, $node);
@@ -240,15 +233,15 @@ final class ParserTest extends Framework\TestCase
 
     public function testParseParsesArraysAtMaximumDepthWhenMaximumDepthIs4096(): void
     {
-        $raw = Raw::fromString(\str_repeat(
+        $raw = Parser\Raw::fromString(\str_repeat(
             '[',
             4095,
         ) . '1' . \str_repeat(
             ']',
             4095,
         ));
-        $maximumDepth = MaximumDepth::fromInt(4096);
-        $format = Format::compact();
+        $maximumDepth = Parser\MaximumDepth::fromInt(4096);
+        $format = Parser\Format::compact();
 
         $parser = new Parser\Parser();
 
@@ -257,7 +250,7 @@ final class ParserTest extends Framework\TestCase
             $maximumDepth,
         );
 
-        $printer = new Printer();
+        $printer = new Parser\Printer();
 
         $output = $printer->print(
             $node,
@@ -269,8 +262,8 @@ final class ParserTest extends Framework\TestCase
 
     public function testParseParsesSiblingArraysAndObjectsAtMaximumDepth(): void
     {
-        $raw = Raw::fromString('[[],{},[]]');
-        $maximumDepth = MaximumDepth::fromInt(3);
+        $raw = Parser\Raw::fromString('[[],{},[]]');
+        $maximumDepth = Parser\MaximumDepth::fromInt(3);
 
         $parser = new Parser\Parser();
 
@@ -279,10 +272,10 @@ final class ParserTest extends Framework\TestCase
             $maximumDepth,
         );
 
-        $expected = Node\ArrayNode::create(
-            Node\ArrayNode::create(),
-            Node\ObjectNode::create(),
-            Node\ArrayNode::create(),
+        $expected = Parser\Node\ArrayNode::create(
+            Parser\Node\ArrayNode::create(),
+            Parser\Node\ObjectNode::create(),
+            Parser\Node\ArrayNode::create(),
         );
 
         self::assertEquals($expected, $node);
@@ -290,14 +283,14 @@ final class ParserTest extends Framework\TestCase
 
     public function testParseResetsDepthBeforeParsingDocument(): void
     {
-        $maximumDepth = MaximumDepth::fromInt(self::faker()->numberBetween(2, 20));
+        $maximumDepth = Parser\MaximumDepth::fromInt(self::faker()->numberBetween(2, 20));
 
         $incompleteJson = \str_repeat(
             '[',
             $maximumDepth->toInt() - 1,
         );
 
-        $raw = Raw::fromString(\str_repeat(
+        $raw = Parser\Raw::fromString(\str_repeat(
             '[',
             $maximumDepth->toInt() - 1,
         ) . '1' . \str_repeat(
@@ -309,13 +302,13 @@ final class ParserTest extends Framework\TestCase
 
         try {
             $parser->parse(
-                Raw::fromString($incompleteJson),
+                Parser\Raw::fromString($incompleteJson),
                 $maximumDepth,
             );
 
             self::fail('Expected InvalidJson was not thrown.');
-        } catch (InvalidJson $exception) {
-            self::assertSame('Unexpected end of input.', $exception->getMessage());
+        } catch (Parser\InvalidJson $invalidJson) {
+            self::assertSame('Unexpected end of input.', $invalidJson->getMessage());
         }
 
         $node = $parser->parse(
@@ -323,10 +316,10 @@ final class ParserTest extends Framework\TestCase
             $maximumDepth,
         );
 
-        $expected = Node\NumberNode::fromRaw(Raw::fromString('1'));
+        $expected = Parser\Node\NumberNode::fromRaw(Parser\Raw::fromString('1'));
 
         for ($depth = 1; $maximumDepth->toInt() > $depth; ++$depth) {
-            $expected = Node\ArrayNode::create($expected);
+            $expected = Parser\Node\ArrayNode::create($expected);
         }
 
         self::assertEquals($expected, $node);
@@ -340,12 +333,12 @@ final class ParserTest extends Framework\TestCase
      */
     public function testParseThrowsInvalidJsonForJsonTestSuiteFile(string $json): void
     {
-        $raw = Raw::fromString($json);
-        $maximumDepth = MaximumDepth::default();
+        $raw = Parser\Raw::fromString($json);
+        $maximumDepth = Parser\MaximumDepth::default();
 
         $parser = new Parser\Parser();
 
-        $this->expectException(InvalidJson::class);
+        $this->expectException(Parser\InvalidJson::class);
 
         $parser->parse(
             $raw,
@@ -398,12 +391,12 @@ final class ParserTest extends Framework\TestCase
      */
     public function testParseParsesJsonTestSuiteFile(string $json): void
     {
-        $raw = Raw::fromString($json);
-        $maximumDepth = MaximumDepth::default();
-        $format = Format::compact();
+        $raw = Parser\Raw::fromString($json);
+        $maximumDepth = Parser\MaximumDepth::default();
+        $format = Parser\Format::compact();
 
         $parser = new Parser\Parser();
-        $printer = new Printer();
+        $printer = new Parser\Printer();
 
         $node = $parser->parse(
             $raw,
@@ -416,7 +409,7 @@ final class ParserTest extends Framework\TestCase
         );
 
         $expected = $parser->parse(
-            Raw::fromString($printed),
+            Parser\Raw::fromString($printed),
             $maximumDepth,
         );
 
@@ -468,12 +461,12 @@ final class ParserTest extends Framework\TestCase
         string $json,
         string $printed
     ): void {
-        $raw = Raw::fromString($json);
-        $maximumDepth = MaximumDepth::default();
-        $format = Format::compact();
+        $raw = Parser\Raw::fromString($json);
+        $maximumDepth = Parser\MaximumDepth::default();
+        $format = Parser\Format::compact();
 
         $parser = new Parser\Parser();
-        $printer = new Printer();
+        $printer = new Parser\Printer();
 
         $node = $parser->parse(
             $raw,
@@ -538,12 +531,12 @@ final class ParserTest extends Framework\TestCase
 
     public function testParseThrowsInvalidJsonForEmptyInput(): void
     {
-        $raw = Raw::fromString('');
-        $maximumDepth = MaximumDepth::default();
+        $raw = Parser\Raw::fromString('');
+        $maximumDepth = Parser\MaximumDepth::default();
 
         $parser = new Parser\Parser();
 
-        $this->expectException(InvalidJson::class);
+        $this->expectException(Parser\InvalidJson::class);
 
         $parser->parse(
             $raw,
@@ -553,12 +546,12 @@ final class ParserTest extends Framework\TestCase
 
     public function testParseThrowsInvalidJsonForTrailingContent(): void
     {
-        $raw = Raw::fromString('null null');
-        $maximumDepth = MaximumDepth::default();
+        $raw = Parser\Raw::fromString('null null');
+        $maximumDepth = Parser\MaximumDepth::default();
 
         $parser = new Parser\Parser();
 
-        $this->expectException(InvalidJson::class);
+        $this->expectException(Parser\InvalidJson::class);
 
         $parser->parse(
             $raw,
@@ -568,8 +561,8 @@ final class ParserTest extends Framework\TestCase
 
     public function testParseParsesNull(): void
     {
-        $raw = Raw::fromString('null');
-        $maximumDepth = MaximumDepth::default();
+        $raw = Parser\Raw::fromString('null');
+        $maximumDepth = Parser\MaximumDepth::default();
 
         $parser = new Parser\Parser();
 
@@ -578,15 +571,15 @@ final class ParserTest extends Framework\TestCase
             $maximumDepth,
         );
 
-        $expected = Node\NullNode::create();
+        $expected = Parser\Node\NullNode::create();
 
         self::assertEquals($expected, $node);
     }
 
     public function testParseParsesNullWithWhitespace(): void
     {
-        $raw = Raw::fromString("  null\n");
-        $maximumDepth = MaximumDepth::default();
+        $raw = Parser\Raw::fromString("  null\n");
+        $maximumDepth = Parser\MaximumDepth::default();
 
         $parser = new Parser\Parser();
 
@@ -595,15 +588,15 @@ final class ParserTest extends Framework\TestCase
             $maximumDepth,
         );
 
-        $expected = Node\NullNode::create();
+        $expected = Parser\Node\NullNode::create();
 
         self::assertEquals($expected, $node);
     }
 
     public function testParseParsesTrue(): void
     {
-        $raw = Raw::fromString('true');
-        $maximumDepth = MaximumDepth::default();
+        $raw = Parser\Raw::fromString('true');
+        $maximumDepth = Parser\MaximumDepth::default();
 
         $parser = new Parser\Parser();
 
@@ -612,15 +605,15 @@ final class ParserTest extends Framework\TestCase
             $maximumDepth,
         );
 
-        $expected = Node\BooleanNode::fromBool(true);
+        $expected = Parser\Node\BooleanNode::fromBool(true);
 
         self::assertEquals($expected, $node);
     }
 
     public function testParseParsesFalse(): void
     {
-        $raw = Raw::fromString('false');
-        $maximumDepth = MaximumDepth::default();
+        $raw = Parser\Raw::fromString('false');
+        $maximumDepth = Parser\MaximumDepth::default();
 
         $parser = new Parser\Parser();
 
@@ -629,7 +622,7 @@ final class ParserTest extends Framework\TestCase
             $maximumDepth,
         );
 
-        $expected = Node\BooleanNode::fromBool(false);
+        $expected = Parser\Node\BooleanNode::fromBool(false);
 
         self::assertEquals($expected, $node);
     }
@@ -641,12 +634,12 @@ final class ParserTest extends Framework\TestCase
         string $json,
         int $column
     ): void {
-        $raw = Raw::fromString($json);
-        $maximumDepth = MaximumDepth::default();
+        $raw = Parser\Raw::fromString($json);
+        $maximumDepth = Parser\MaximumDepth::default();
 
         $parser = new Parser\Parser();
 
-        $this->expectException(InvalidJson::class);
+        $this->expectException(Parser\InvalidJson::class);
         $this->expectExceptionMessage(\sprintf(
             'Malformed UTF-8 at line 1, column %d.',
             $column,
@@ -664,9 +657,21 @@ final class ParserTest extends Framework\TestCase
     public static function provideMalformedUtf8AndColumn(): iterable
     {
         $values = [
+            'above-maximum-code-point' => [
+                "\"\xF4\x90\x80\x80\"",
+                2,
+            ],
+            'after-valid-characters' => [
+                "\"a\xC3\xA9\x80\"",
+                4,
+            ],
             'continuation-byte-without-lead-byte' => [
                 "\"\x80\"",
                 2,
+            ],
+            'in-property-name' => [
+                "{\"\x80\":1}",
+                3,
             ],
             'invalid-continuation-byte' => [
                 "\"\xC3\x28\"",
@@ -688,12 +693,28 @@ final class ParserTest extends Framework\TestCase
                 "\"\xFF\"",
                 2,
             ],
+            'overlong-four-byte-sequence' => [
+                "\"\xF0\x80\x80\x80\"",
+                2,
+            ],
             'overlong-three-byte-sequence' => [
                 "\"\xE0\x80\x80\"",
                 2,
             ],
-            'overlong-four-byte-sequence' => [
-                "\"\xF0\x80\x80\x80\"",
+            'truncated-at-end-of-input' => [
+                "\"\xC3",
+                2,
+            ],
+            'truncated-four-byte-sequence' => [
+                "\"\xF0\x9F\x98\"",
+                2,
+            ],
+            'truncated-three-byte-sequence' => [
+                "\"\xE2\x82\"",
+                2,
+            ],
+            'truncated-two-byte-sequence' => [
+                "\"\xC3\"",
                 2,
             ],
             'utf8-encoded-high-surrogate' => [
@@ -703,34 +724,6 @@ final class ParserTest extends Framework\TestCase
             'utf8-encoded-low-surrogate' => [
                 "\"\xED\xBF\xBF\"",
                 2,
-            ],
-            'above-maximum-code-point' => [
-                "\"\xF4\x90\x80\x80\"",
-                2,
-            ],
-            'truncated-two-byte-sequence' => [
-                "\"\xC3\"",
-                2,
-            ],
-            'truncated-three-byte-sequence' => [
-                "\"\xE2\x82\"",
-                2,
-            ],
-            'truncated-four-byte-sequence' => [
-                "\"\xF0\x9F\x98\"",
-                2,
-            ],
-            'truncated-at-end-of-input' => [
-                "\"\xC3",
-                2,
-            ],
-            'after-valid-characters' => [
-                "\"a\xC3\xA9\x80\"",
-                4,
-            ],
-            'in-property-name' => [
-                "{\"\x80\":1}",
-                3,
             ],
         ];
 
@@ -747,8 +740,8 @@ final class ParserTest extends Framework\TestCase
      */
     public function testParseParsesString(string $json): void
     {
-        $raw = Raw::fromString($json);
-        $maximumDepth = MaximumDepth::default();
+        $raw = Parser\Raw::fromString($json);
+        $maximumDepth = Parser\MaximumDepth::default();
 
         $parser = new Parser\Parser();
 
@@ -757,7 +750,7 @@ final class ParserTest extends Framework\TestCase
             $maximumDepth,
         );
 
-        $expected = Node\StringNode::fromRaw($raw);
+        $expected = Parser\Node\StringNode::fromRaw($raw);
 
         self::assertEquals($expected, $node);
     }
@@ -769,42 +762,42 @@ final class ParserTest extends Framework\TestCase
     {
         $values = [
             'empty' => '""',
-            'plain' => '"hello"',
-            'slash' => '"a/b"',
-            'escaped-quote' => '"hello \\"world\\""',
             'escaped-backslash' => '"a\\\\b"',
-            'escaped-slash' => '"a\\/b"',
             'escaped-backspace' => '"a\\bb"',
+            'escaped-carriage-return' => '"a\\rb"',
             'escaped-form-feed' => '"a\\fb"',
             'escaped-newline' => '"a\\nb"',
-            'escaped-carriage-return' => '"a\\rb"',
+            'escaped-quote' => '"hello \\"world\\""',
+            'escaped-slash' => '"a\\/b"',
             'escaped-tab' => '"a\\tb"',
-            'unicode-escape' => '"\\u0041"',
-            'unicode-escape-followed-by-hex-digit' => '"\\u00411"',
-            'unicode-escape-null-character' => '"\\u0000"',
-            'unicode-escape-lowercase-hex' => '"\\u00ff"',
-            'unicode-escape-uppercase-hex' => '"\\u00FF"',
-            'unicode-escape-mixed-case-hex' => '"\\u00Ff"',
-            'unicode-escape-below-surrogates' => '"\\uD7FF"',
-            'unicode-escape-above-surrogates' => '"\\uE000"',
-            'unicode-escape-maximum' => '"\\uFFFF"',
-            'surrogate-pair-minimum' => '"\\uD800\\uDC00"',
-            'surrogate-pair-with-highest-low-surrogate' => '"\\uD800\\uDFFF"',
-            'surrogate-pair-with-highest-high-surrogate' => '"\\uDBFF\\uDC00"',
-            'surrogate-pair-maximum' => '"\\uDBFF\\uDFFF"',
+            'literal-consecutive-multibyte-characters' => "\"\xE6\x97\xA5\xE6\x9C\xAC\"",
             'literal-delete-character' => "\"\x7F\"",
-            'literal-two-byte-minimum' => "\"\xC2\x80\"",
-            'literal-two-byte-maximum' => "\"\xDF\xBF\"",
-            'literal-three-byte-minimum' => "\"\xE0\xA0\x80\"",
-            'literal-three-byte-with-lead-byte-e1' => "\"\xE1\x80\x80\"",
-            'literal-three-byte-below-surrogates' => "\"\xED\x9F\xBF\"",
-            'literal-three-byte-above-surrogates' => "\"\xEE\x80\x80\"",
-            'literal-three-byte-maximum' => "\"\xEF\xBF\xBF\"",
+            'literal-four-byte-maximum' => "\"\xF4\x8F\xBF\xBF\"",
             'literal-four-byte-minimum' => "\"\xF0\x90\x80\x80\"",
             'literal-four-byte-with-lead-byte-f1' => "\"\xF1\x80\x80\x80\"",
-            'literal-four-byte-maximum' => "\"\xF4\x8F\xBF\xBF\"",
             'literal-multibyte-character-followed-by-ascii' => "\"caf\xC3\xA9s\"",
-            'literal-consecutive-multibyte-characters' => "\"\xE6\x97\xA5\xE6\x9C\xAC\"",
+            'literal-three-byte-above-surrogates' => "\"\xEE\x80\x80\"",
+            'literal-three-byte-below-surrogates' => "\"\xED\x9F\xBF\"",
+            'literal-three-byte-maximum' => "\"\xEF\xBF\xBF\"",
+            'literal-three-byte-minimum' => "\"\xE0\xA0\x80\"",
+            'literal-three-byte-with-lead-byte-e1' => "\"\xE1\x80\x80\"",
+            'literal-two-byte-maximum' => "\"\xDF\xBF\"",
+            'literal-two-byte-minimum' => "\"\xC2\x80\"",
+            'plain' => '"hello"',
+            'slash' => '"a/b"',
+            'surrogate-pair-maximum' => '"\\uDBFF\\uDFFF"',
+            'surrogate-pair-minimum' => '"\\uD800\\uDC00"',
+            'surrogate-pair-with-highest-high-surrogate' => '"\\uDBFF\\uDC00"',
+            'surrogate-pair-with-highest-low-surrogate' => '"\\uD800\\uDFFF"',
+            'unicode-escape' => '"\\u0041"',
+            'unicode-escape-above-surrogates' => '"\\uE000"',
+            'unicode-escape-below-surrogates' => '"\\uD7FF"',
+            'unicode-escape-followed-by-hex-digit' => '"\\u00411"',
+            'unicode-escape-lowercase-hex' => '"\\u00ff"',
+            'unicode-escape-maximum' => '"\\uFFFF"',
+            'unicode-escape-mixed-case-hex' => '"\\u00Ff"',
+            'unicode-escape-null-character' => '"\\u0000"',
+            'unicode-escape-uppercase-hex' => '"\\u00FF"',
         ];
 
         foreach ($values as $key => $value) {
@@ -816,12 +809,12 @@ final class ParserTest extends Framework\TestCase
 
     public function testParseThrowsInvalidJsonForHighSurrogateWithoutLowSurrogate(): void
     {
-        $raw = Raw::fromString('"\\uD83D"');
-        $maximumDepth = MaximumDepth::default();
+        $raw = Parser\Raw::fromString('"\\uD83D"');
+        $maximumDepth = Parser\MaximumDepth::default();
 
         $parser = new Parser\Parser();
 
-        $this->expectException(InvalidJson::class);
+        $this->expectException(Parser\InvalidJson::class);
 
         $parser->parse(
             $raw,
@@ -831,12 +824,12 @@ final class ParserTest extends Framework\TestCase
 
     public function testParseThrowsInvalidJsonForUnexpectedLowSurrogate(): void
     {
-        $raw = Raw::fromString('"\\uDE00"');
-        $maximumDepth = MaximumDepth::default();
+        $raw = Parser\Raw::fromString('"\\uDE00"');
+        $maximumDepth = Parser\MaximumDepth::default();
 
         $parser = new Parser\Parser();
 
-        $this->expectException(InvalidJson::class);
+        $this->expectException(Parser\InvalidJson::class);
 
         $parser->parse(
             $raw,
@@ -846,12 +839,12 @@ final class ParserTest extends Framework\TestCase
 
     public function testParseThrowsInvalidJsonForInvalidLowSurrogate(): void
     {
-        $raw = Raw::fromString('"\\uD83D\\u0041"');
-        $maximumDepth = MaximumDepth::default();
+        $raw = Parser\Raw::fromString('"\\uD83D\\u0041"');
+        $maximumDepth = Parser\MaximumDepth::default();
 
         $parser = new Parser\Parser();
 
-        $this->expectException(InvalidJson::class);
+        $this->expectException(Parser\InvalidJson::class);
 
         $parser->parse(
             $raw,
@@ -861,12 +854,12 @@ final class ParserTest extends Framework\TestCase
 
     public function testParseThrowsInvalidJsonForInvalidEscapeSequence(): void
     {
-        $raw = Raw::fromString('"\\x"');
-        $maximumDepth = MaximumDepth::default();
+        $raw = Parser\Raw::fromString('"\\x"');
+        $maximumDepth = Parser\MaximumDepth::default();
 
         $parser = new Parser\Parser();
 
-        $this->expectException(InvalidJson::class);
+        $this->expectException(Parser\InvalidJson::class);
 
         $parser->parse(
             $raw,
@@ -876,12 +869,12 @@ final class ParserTest extends Framework\TestCase
 
     public function testParseThrowsInvalidJsonForUnterminatedString(): void
     {
-        $raw = Raw::fromString('"hello');
-        $maximumDepth = MaximumDepth::default();
+        $raw = Parser\Raw::fromString('"hello');
+        $maximumDepth = Parser\MaximumDepth::default();
 
         $parser = new Parser\Parser();
 
-        $this->expectException(InvalidJson::class);
+        $this->expectException(Parser\InvalidJson::class);
 
         $parser->parse(
             $raw,
@@ -891,12 +884,12 @@ final class ParserTest extends Framework\TestCase
 
     public function testParseThrowsInvalidJsonForUnescapedControlCharacter(): void
     {
-        $raw = Raw::fromString("\"hello\x00world\"");
-        $maximumDepth = MaximumDepth::default();
+        $raw = Parser\Raw::fromString("\"hello\x00world\"");
+        $maximumDepth = Parser\MaximumDepth::default();
 
         $parser = new Parser\Parser();
 
-        $this->expectException(InvalidJson::class);
+        $this->expectException(Parser\InvalidJson::class);
 
         $parser->parse(
             $raw,
@@ -906,12 +899,12 @@ final class ParserTest extends Framework\TestCase
 
     public function testParseThrowsInvalidJsonForInvalidHexDigits(): void
     {
-        $raw = Raw::fromString('"\\uGGGG"');
-        $maximumDepth = MaximumDepth::default();
+        $raw = Parser\Raw::fromString('"\\uGGGG"');
+        $maximumDepth = Parser\MaximumDepth::default();
 
         $parser = new Parser\Parser();
 
-        $this->expectException(InvalidJson::class);
+        $this->expectException(Parser\InvalidJson::class);
 
         $parser->parse(
             $raw,
@@ -921,12 +914,12 @@ final class ParserTest extends Framework\TestCase
 
     public function testParseThrowsInvalidJsonForTruncatedHexQuad(): void
     {
-        $raw = Raw::fromString('"\\u00"');
-        $maximumDepth = MaximumDepth::default();
+        $raw = Parser\Raw::fromString('"\\u00"');
+        $maximumDepth = Parser\MaximumDepth::default();
 
         $parser = new Parser\Parser();
 
-        $this->expectException(InvalidJson::class);
+        $this->expectException(Parser\InvalidJson::class);
 
         $parser->parse(
             $raw,
@@ -936,8 +929,8 @@ final class ParserTest extends Framework\TestCase
 
     public function testParseParsesZero(): void
     {
-        $raw = Raw::fromString('0');
-        $maximumDepth = MaximumDepth::default();
+        $raw = Parser\Raw::fromString('0');
+        $maximumDepth = Parser\MaximumDepth::default();
 
         $parser = new Parser\Parser();
 
@@ -946,15 +939,15 @@ final class ParserTest extends Framework\TestCase
             $maximumDepth,
         );
 
-        $expected = Node\NumberNode::fromRaw(Raw::fromString('0'));
+        $expected = Parser\Node\NumberNode::fromRaw(Parser\Raw::fromString('0'));
 
         self::assertEquals($expected, $node);
     }
 
     public function testParseParsesPositiveInteger(): void
     {
-        $raw = Raw::fromString('42');
-        $maximumDepth = MaximumDepth::default();
+        $raw = Parser\Raw::fromString('42');
+        $maximumDepth = Parser\MaximumDepth::default();
 
         $parser = new Parser\Parser();
 
@@ -963,15 +956,15 @@ final class ParserTest extends Framework\TestCase
             $maximumDepth,
         );
 
-        $expected = Node\NumberNode::fromRaw(Raw::fromString('42'));
+        $expected = Parser\Node\NumberNode::fromRaw(Parser\Raw::fromString('42'));
 
         self::assertEquals($expected, $node);
     }
 
     public function testParseParsesNegativeInteger(): void
     {
-        $raw = Raw::fromString('-42');
-        $maximumDepth = MaximumDepth::default();
+        $raw = Parser\Raw::fromString('-42');
+        $maximumDepth = Parser\MaximumDepth::default();
 
         $parser = new Parser\Parser();
 
@@ -980,15 +973,15 @@ final class ParserTest extends Framework\TestCase
             $maximumDepth,
         );
 
-        $expected = Node\NumberNode::fromRaw(Raw::fromString('-42'));
+        $expected = Parser\Node\NumberNode::fromRaw(Parser\Raw::fromString('-42'));
 
         self::assertEquals($expected, $node);
     }
 
     public function testParseParsesNegativeZero(): void
     {
-        $raw = Raw::fromString('-0');
-        $maximumDepth = MaximumDepth::default();
+        $raw = Parser\Raw::fromString('-0');
+        $maximumDepth = Parser\MaximumDepth::default();
 
         $parser = new Parser\Parser();
 
@@ -997,15 +990,15 @@ final class ParserTest extends Framework\TestCase
             $maximumDepth,
         );
 
-        $expected = Node\NumberNode::fromRaw(Raw::fromString('-0'));
+        $expected = Parser\Node\NumberNode::fromRaw(Parser\Raw::fromString('-0'));
 
         self::assertEquals($expected, $node);
     }
 
     public function testParseParsesFloatWithDecimal(): void
     {
-        $raw = Raw::fromString('1.5');
-        $maximumDepth = MaximumDepth::default();
+        $raw = Parser\Raw::fromString('1.5');
+        $maximumDepth = Parser\MaximumDepth::default();
 
         $parser = new Parser\Parser();
 
@@ -1014,15 +1007,15 @@ final class ParserTest extends Framework\TestCase
             $maximumDepth,
         );
 
-        $expected = Node\NumberNode::fromRaw(Raw::fromString('1.5'));
+        $expected = Parser\Node\NumberNode::fromRaw(Parser\Raw::fromString('1.5'));
 
         self::assertEquals($expected, $node);
     }
 
     public function testParseParsesFloatWithTrailingZeros(): void
     {
-        $raw = Raw::fromString('1.0');
-        $maximumDepth = MaximumDepth::default();
+        $raw = Parser\Raw::fromString('1.0');
+        $maximumDepth = Parser\MaximumDepth::default();
 
         $parser = new Parser\Parser();
 
@@ -1031,15 +1024,15 @@ final class ParserTest extends Framework\TestCase
             $maximumDepth,
         );
 
-        $expected = Node\NumberNode::fromRaw(Raw::fromString('1.0'));
+        $expected = Parser\Node\NumberNode::fromRaw(Parser\Raw::fromString('1.0'));
 
         self::assertEquals($expected, $node);
     }
 
     public function testParseParsesFloatWithExponent(): void
     {
-        $raw = Raw::fromString('1e10');
-        $maximumDepth = MaximumDepth::default();
+        $raw = Parser\Raw::fromString('1e10');
+        $maximumDepth = Parser\MaximumDepth::default();
 
         $parser = new Parser\Parser();
 
@@ -1048,15 +1041,15 @@ final class ParserTest extends Framework\TestCase
             $maximumDepth,
         );
 
-        $expected = Node\NumberNode::fromRaw(Raw::fromString('1e10'));
+        $expected = Parser\Node\NumberNode::fromRaw(Parser\Raw::fromString('1e10'));
 
         self::assertEquals($expected, $node);
     }
 
     public function testParseParsesFloatWithNegativeExponent(): void
     {
-        $raw = Raw::fromString('1E-5');
-        $maximumDepth = MaximumDepth::default();
+        $raw = Parser\Raw::fromString('1E-5');
+        $maximumDepth = Parser\MaximumDepth::default();
 
         $parser = new Parser\Parser();
 
@@ -1065,15 +1058,15 @@ final class ParserTest extends Framework\TestCase
             $maximumDepth,
         );
 
-        $expected = Node\NumberNode::fromRaw(Raw::fromString('1E-5'));
+        $expected = Parser\Node\NumberNode::fromRaw(Parser\Raw::fromString('1E-5'));
 
         self::assertEquals($expected, $node);
     }
 
     public function testParseParsesFloatWithPositiveExponent(): void
     {
-        $raw = Raw::fromString('1e+2');
-        $maximumDepth = MaximumDepth::default();
+        $raw = Parser\Raw::fromString('1e+2');
+        $maximumDepth = Parser\MaximumDepth::default();
 
         $parser = new Parser\Parser();
 
@@ -1082,15 +1075,15 @@ final class ParserTest extends Framework\TestCase
             $maximumDepth,
         );
 
-        $expected = Node\NumberNode::fromRaw(Raw::fromString('1e+2'));
+        $expected = Parser\Node\NumberNode::fromRaw(Parser\Raw::fromString('1e+2'));
 
         self::assertEquals($expected, $node);
     }
 
     public function testParseParsesFloatWithDecimalAndExponent(): void
     {
-        $raw = Raw::fromString('1.5e2');
-        $maximumDepth = MaximumDepth::default();
+        $raw = Parser\Raw::fromString('1.5e2');
+        $maximumDepth = Parser\MaximumDepth::default();
 
         $parser = new Parser\Parser();
 
@@ -1099,15 +1092,15 @@ final class ParserTest extends Framework\TestCase
             $maximumDepth,
         );
 
-        $expected = Node\NumberNode::fromRaw(Raw::fromString('1.5e2'));
+        $expected = Parser\Node\NumberNode::fromRaw(Parser\Raw::fromString('1.5e2'));
 
         self::assertEquals($expected, $node);
     }
 
     public function testParseParsesLargeInteger(): void
     {
-        $raw = Raw::fromString('99999999999999999999');
-        $maximumDepth = MaximumDepth::default();
+        $raw = Parser\Raw::fromString('99999999999999999999');
+        $maximumDepth = Parser\MaximumDepth::default();
 
         $parser = new Parser\Parser();
 
@@ -1116,19 +1109,19 @@ final class ParserTest extends Framework\TestCase
             $maximumDepth,
         );
 
-        $expected = Node\NumberNode::fromRaw($raw);
+        $expected = Parser\Node\NumberNode::fromRaw($raw);
 
         self::assertEquals($expected, $node);
     }
 
     public function testParseThrowsInvalidJsonForLeadingZeroInNumber(): void
     {
-        $raw = Raw::fromString('01');
-        $maximumDepth = MaximumDepth::default();
+        $raw = Parser\Raw::fromString('01');
+        $maximumDepth = Parser\MaximumDepth::default();
 
         $parser = new Parser\Parser();
 
-        $this->expectException(InvalidJson::class);
+        $this->expectException(Parser\InvalidJson::class);
 
         $parser->parse(
             $raw,
@@ -1138,12 +1131,12 @@ final class ParserTest extends Framework\TestCase
 
     public function testParseThrowsInvalidJsonForMissingDigitAfterDecimalPoint(): void
     {
-        $raw = Raw::fromString('1.');
-        $maximumDepth = MaximumDepth::default();
+        $raw = Parser\Raw::fromString('1.');
+        $maximumDepth = Parser\MaximumDepth::default();
 
         $parser = new Parser\Parser();
 
-        $this->expectException(InvalidJson::class);
+        $this->expectException(Parser\InvalidJson::class);
 
         $parser->parse(
             $raw,
@@ -1153,12 +1146,12 @@ final class ParserTest extends Framework\TestCase
 
     public function testParseThrowsInvalidJsonForMissingDigitInExponent(): void
     {
-        $raw = Raw::fromString('1e');
-        $maximumDepth = MaximumDepth::default();
+        $raw = Parser\Raw::fromString('1e');
+        $maximumDepth = Parser\MaximumDepth::default();
 
         $parser = new Parser\Parser();
 
-        $this->expectException(InvalidJson::class);
+        $this->expectException(Parser\InvalidJson::class);
 
         $parser->parse(
             $raw,
@@ -1168,12 +1161,12 @@ final class ParserTest extends Framework\TestCase
 
     public function testParseThrowsInvalidJsonForMinusWithoutDigit(): void
     {
-        $raw = Raw::fromString('-');
-        $maximumDepth = MaximumDepth::default();
+        $raw = Parser\Raw::fromString('-');
+        $maximumDepth = Parser\MaximumDepth::default();
 
         $parser = new Parser\Parser();
 
-        $this->expectException(InvalidJson::class);
+        $this->expectException(Parser\InvalidJson::class);
 
         $parser->parse(
             $raw,
@@ -1186,12 +1179,12 @@ final class ParserTest extends Framework\TestCase
      */
     public function testParseThrowsInvalidJsonForInvalidNumber(string $json): void
     {
-        $raw = Raw::fromString($json);
-        $maximumDepth = MaximumDepth::default();
+        $raw = Parser\Raw::fromString($json);
+        $maximumDepth = Parser\MaximumDepth::default();
 
         $parser = new Parser\Parser();
 
-        $this->expectException(InvalidJson::class);
+        $this->expectException(Parser\InvalidJson::class);
 
         $parser->parse(
             $raw,
@@ -1223,8 +1216,8 @@ final class ParserTest extends Framework\TestCase
 
     public function testParseParsesEmptyArray(): void
     {
-        $raw = Raw::fromString('[]');
-        $maximumDepth = MaximumDepth::default();
+        $raw = Parser\Raw::fromString('[]');
+        $maximumDepth = Parser\MaximumDepth::default();
 
         $parser = new Parser\Parser();
 
@@ -1233,15 +1226,15 @@ final class ParserTest extends Framework\TestCase
             $maximumDepth,
         );
 
-        $expected = Node\ArrayNode::create();
+        $expected = Parser\Node\ArrayNode::create();
 
         self::assertEquals($expected, $node);
     }
 
     public function testParseParsesArrayWithElements(): void
     {
-        $raw = Raw::fromString('[1, "two", null, true]');
-        $maximumDepth = MaximumDepth::default();
+        $raw = Parser\Raw::fromString('[1, "two", null, true]');
+        $maximumDepth = Parser\MaximumDepth::default();
 
         $parser = new Parser\Parser();
 
@@ -1250,11 +1243,11 @@ final class ParserTest extends Framework\TestCase
             $maximumDepth,
         );
 
-        $expected = Node\ArrayNode::create(
-            Node\NumberNode::fromRaw(Raw::fromString('1')),
-            Node\StringNode::fromRaw(Raw::fromString('"two"')),
-            Node\NullNode::create(),
-            Node\BooleanNode::fromBool(true),
+        $expected = Parser\Node\ArrayNode::create(
+            Parser\Node\NumberNode::fromRaw(Parser\Raw::fromString('1')),
+            Parser\Node\StringNode::fromRaw(Parser\Raw::fromString('"two"')),
+            Parser\Node\NullNode::create(),
+            Parser\Node\BooleanNode::fromBool(true),
         );
 
         self::assertEquals($expected, $node);
@@ -1262,8 +1255,8 @@ final class ParserTest extends Framework\TestCase
 
     public function testParseParsesNestedArray(): void
     {
-        $raw = Raw::fromString('[[1, 2], [3]]');
-        $maximumDepth = MaximumDepth::default();
+        $raw = Parser\Raw::fromString('[[1, 2], [3]]');
+        $maximumDepth = Parser\MaximumDepth::default();
 
         $parser = new Parser\Parser();
 
@@ -1272,12 +1265,12 @@ final class ParserTest extends Framework\TestCase
             $maximumDepth,
         );
 
-        $expected = Node\ArrayNode::create(
-            Node\ArrayNode::create(
-                Node\NumberNode::fromRaw(Raw::fromString('1')),
-                Node\NumberNode::fromRaw(Raw::fromString('2')),
+        $expected = Parser\Node\ArrayNode::create(
+            Parser\Node\ArrayNode::create(
+                Parser\Node\NumberNode::fromRaw(Parser\Raw::fromString('1')),
+                Parser\Node\NumberNode::fromRaw(Parser\Raw::fromString('2')),
             ),
-            Node\ArrayNode::create(Node\NumberNode::fromRaw(Raw::fromString('3'))),
+            Parser\Node\ArrayNode::create(Parser\Node\NumberNode::fromRaw(Parser\Raw::fromString('3'))),
         );
 
         self::assertEquals($expected, $node);
@@ -1285,12 +1278,12 @@ final class ParserTest extends Framework\TestCase
 
     public function testParseThrowsInvalidJsonForUnterminatedArray(): void
     {
-        $raw = Raw::fromString('[1, 2');
-        $maximumDepth = MaximumDepth::default();
+        $raw = Parser\Raw::fromString('[1, 2');
+        $maximumDepth = Parser\MaximumDepth::default();
 
         $parser = new Parser\Parser();
 
-        $this->expectException(InvalidJson::class);
+        $this->expectException(Parser\InvalidJson::class);
 
         $parser->parse(
             $raw,
@@ -1300,8 +1293,8 @@ final class ParserTest extends Framework\TestCase
 
     public function testParseParsesEmptyObject(): void
     {
-        $raw = Raw::fromString('{}');
-        $maximumDepth = MaximumDepth::default();
+        $raw = Parser\Raw::fromString('{}');
+        $maximumDepth = Parser\MaximumDepth::default();
 
         $parser = new Parser\Parser();
 
@@ -1310,15 +1303,15 @@ final class ParserTest extends Framework\TestCase
             $maximumDepth,
         );
 
-        $expected = Node\ObjectNode::create();
+        $expected = Parser\Node\ObjectNode::create();
 
         self::assertEquals($expected, $node);
     }
 
     public function testParseParsesObjectWithProperties(): void
     {
-        $raw = Raw::fromString('{"name": "test", "count": 3}');
-        $maximumDepth = MaximumDepth::default();
+        $raw = Parser\Raw::fromString('{"name": "test", "count": 3}');
+        $maximumDepth = Parser\MaximumDepth::default();
 
         $parser = new Parser\Parser();
 
@@ -1327,14 +1320,14 @@ final class ParserTest extends Framework\TestCase
             $maximumDepth,
         );
 
-        $expected = Node\ObjectNode::create(
-            Node\ObjectProperty::create(
-                Node\StringNode::fromRaw(Raw::fromString('"name"')),
-                Node\StringNode::fromRaw(Raw::fromString('"test"')),
+        $expected = Parser\Node\ObjectNode::create(
+            Parser\Node\ObjectProperty::create(
+                Parser\Node\StringNode::fromRaw(Parser\Raw::fromString('"name"')),
+                Parser\Node\StringNode::fromRaw(Parser\Raw::fromString('"test"')),
             ),
-            Node\ObjectProperty::create(
-                Node\StringNode::fromRaw(Raw::fromString('"count"')),
-                Node\NumberNode::fromRaw(Raw::fromString('3')),
+            Parser\Node\ObjectProperty::create(
+                Parser\Node\StringNode::fromRaw(Parser\Raw::fromString('"count"')),
+                Parser\Node\NumberNode::fromRaw(Parser\Raw::fromString('3')),
             ),
         );
 
@@ -1343,8 +1336,8 @@ final class ParserTest extends Framework\TestCase
 
     public function testParseParsesObjectPreservingPropertyOrder(): void
     {
-        $raw = Raw::fromString('{"b": 2, "a": 1, "c": 3}');
-        $maximumDepth = MaximumDepth::default();
+        $raw = Parser\Raw::fromString('{"b": 2, "a": 1, "c": 3}');
+        $maximumDepth = Parser\MaximumDepth::default();
 
         $parser = new Parser\Parser();
 
@@ -1353,18 +1346,18 @@ final class ParserTest extends Framework\TestCase
             $maximumDepth,
         );
 
-        $expected = Node\ObjectNode::create(
-            Node\ObjectProperty::create(
-                Node\StringNode::fromRaw(Raw::fromString('"b"')),
-                Node\NumberNode::fromRaw(Raw::fromString('2')),
+        $expected = Parser\Node\ObjectNode::create(
+            Parser\Node\ObjectProperty::create(
+                Parser\Node\StringNode::fromRaw(Parser\Raw::fromString('"b"')),
+                Parser\Node\NumberNode::fromRaw(Parser\Raw::fromString('2')),
             ),
-            Node\ObjectProperty::create(
-                Node\StringNode::fromRaw(Raw::fromString('"a"')),
-                Node\NumberNode::fromRaw(Raw::fromString('1')),
+            Parser\Node\ObjectProperty::create(
+                Parser\Node\StringNode::fromRaw(Parser\Raw::fromString('"a"')),
+                Parser\Node\NumberNode::fromRaw(Parser\Raw::fromString('1')),
             ),
-            Node\ObjectProperty::create(
-                Node\StringNode::fromRaw(Raw::fromString('"c"')),
-                Node\NumberNode::fromRaw(Raw::fromString('3')),
+            Parser\Node\ObjectProperty::create(
+                Parser\Node\StringNode::fromRaw(Parser\Raw::fromString('"c"')),
+                Parser\Node\NumberNode::fromRaw(Parser\Raw::fromString('3')),
             ),
         );
 
@@ -1373,8 +1366,8 @@ final class ParserTest extends Framework\TestCase
 
     public function testParseParsesObjectPreservingPropertiesWithDuplicateNames(): void
     {
-        $raw = Raw::fromString('{"a": 1, "a": 2}');
-        $maximumDepth = MaximumDepth::default();
+        $raw = Parser\Raw::fromString('{"a": 1, "a": 2}');
+        $maximumDepth = Parser\MaximumDepth::default();
 
         $parser = new Parser\Parser();
 
@@ -1383,14 +1376,14 @@ final class ParserTest extends Framework\TestCase
             $maximumDepth,
         );
 
-        $expected = Node\ObjectNode::create(
-            Node\ObjectProperty::create(
-                Node\StringNode::fromRaw(Raw::fromString('"a"')),
-                Node\NumberNode::fromRaw(Raw::fromString('1')),
+        $expected = Parser\Node\ObjectNode::create(
+            Parser\Node\ObjectProperty::create(
+                Parser\Node\StringNode::fromRaw(Parser\Raw::fromString('"a"')),
+                Parser\Node\NumberNode::fromRaw(Parser\Raw::fromString('1')),
             ),
-            Node\ObjectProperty::create(
-                Node\StringNode::fromRaw(Raw::fromString('"a"')),
-                Node\NumberNode::fromRaw(Raw::fromString('2')),
+            Parser\Node\ObjectProperty::create(
+                Parser\Node\StringNode::fromRaw(Parser\Raw::fromString('"a"')),
+                Parser\Node\NumberNode::fromRaw(Parser\Raw::fromString('2')),
             ),
         );
 
@@ -1399,8 +1392,8 @@ final class ParserTest extends Framework\TestCase
 
     public function testParseParsesObjectPreservingRawPropertyNames(): void
     {
-        $raw = Raw::fromString('{"a/b": 1, "a\\/b": 2, "\\u00e9": 3}');
-        $maximumDepth = MaximumDepth::default();
+        $raw = Parser\Raw::fromString('{"a/b": 1, "a\\/b": 2, "\\u00e9": 3}');
+        $maximumDepth = Parser\MaximumDepth::default();
 
         $parser = new Parser\Parser();
 
@@ -1409,18 +1402,18 @@ final class ParserTest extends Framework\TestCase
             $maximumDepth,
         );
 
-        $expected = Node\ObjectNode::create(
-            Node\ObjectProperty::create(
-                Node\StringNode::fromRaw(Raw::fromString('"a/b"')),
-                Node\NumberNode::fromRaw(Raw::fromString('1')),
+        $expected = Parser\Node\ObjectNode::create(
+            Parser\Node\ObjectProperty::create(
+                Parser\Node\StringNode::fromRaw(Parser\Raw::fromString('"a/b"')),
+                Parser\Node\NumberNode::fromRaw(Parser\Raw::fromString('1')),
             ),
-            Node\ObjectProperty::create(
-                Node\StringNode::fromRaw(Raw::fromString('"a\\/b"')),
-                Node\NumberNode::fromRaw(Raw::fromString('2')),
+            Parser\Node\ObjectProperty::create(
+                Parser\Node\StringNode::fromRaw(Parser\Raw::fromString('"a\\/b"')),
+                Parser\Node\NumberNode::fromRaw(Parser\Raw::fromString('2')),
             ),
-            Node\ObjectProperty::create(
-                Node\StringNode::fromRaw(Raw::fromString('"\\u00e9"')),
-                Node\NumberNode::fromRaw(Raw::fromString('3')),
+            Parser\Node\ObjectProperty::create(
+                Parser\Node\StringNode::fromRaw(Parser\Raw::fromString('"\\u00e9"')),
+                Parser\Node\NumberNode::fromRaw(Parser\Raw::fromString('3')),
             ),
         );
 
@@ -1429,12 +1422,12 @@ final class ParserTest extends Framework\TestCase
 
     public function testParseThrowsInvalidJsonForMissingColonInObject(): void
     {
-        $raw = Raw::fromString('{"key" "value"}');
-        $maximumDepth = MaximumDepth::default();
+        $raw = Parser\Raw::fromString('{"key" "value"}');
+        $maximumDepth = Parser\MaximumDepth::default();
 
         $parser = new Parser\Parser();
 
-        $this->expectException(InvalidJson::class);
+        $this->expectException(Parser\InvalidJson::class);
 
         $parser->parse(
             $raw,
@@ -1444,12 +1437,12 @@ final class ParserTest extends Framework\TestCase
 
     public function testParseThrowsInvalidJsonForUnterminatedObject(): void
     {
-        $raw = Raw::fromString('{"key": "value"');
-        $maximumDepth = MaximumDepth::default();
+        $raw = Parser\Raw::fromString('{"key": "value"');
+        $maximumDepth = Parser\MaximumDepth::default();
 
         $parser = new Parser\Parser();
 
-        $this->expectException(InvalidJson::class);
+        $this->expectException(Parser\InvalidJson::class);
 
         $parser->parse(
             $raw,
@@ -1459,12 +1452,12 @@ final class ParserTest extends Framework\TestCase
 
     public function testParseThrowsInvalidJsonForNonStringKey(): void
     {
-        $raw = Raw::fromString('{42: "value"}');
-        $maximumDepth = MaximumDepth::default();
+        $raw = Parser\Raw::fromString('{42: "value"}');
+        $maximumDepth = Parser\MaximumDepth::default();
 
         $parser = new Parser\Parser();
 
-        $this->expectException(InvalidJson::class);
+        $this->expectException(Parser\InvalidJson::class);
 
         $parser->parse(
             $raw,
@@ -1474,8 +1467,8 @@ final class ParserTest extends Framework\TestCase
 
     public function testParseParsesComplexNestedStructure(): void
     {
-        $raw = Raw::fromString('{"users":[{"id":1,"name":"Alice","active":true},{"id":2,"name":"Bob","active":false}],"total":2}');
-        $maximumDepth = MaximumDepth::default();
+        $raw = Parser\Raw::fromString('{"users":[{"id":1,"name":"Alice","active":true},{"id":2,"name":"Bob","active":false}],"total":2}');
+        $maximumDepth = Parser\MaximumDepth::default();
 
         $parser = new Parser\Parser();
 
@@ -1484,43 +1477,43 @@ final class ParserTest extends Framework\TestCase
             $maximumDepth,
         );
 
-        $expected = Node\ObjectNode::create(
-            Node\ObjectProperty::create(
-                Node\StringNode::fromRaw(Raw::fromString('"users"')),
-                Node\ArrayNode::create(
-                    Node\ObjectNode::create(
-                        Node\ObjectProperty::create(
-                            Node\StringNode::fromRaw(Raw::fromString('"id"')),
-                            Node\NumberNode::fromRaw(Raw::fromString('1')),
+        $expected = Parser\Node\ObjectNode::create(
+            Parser\Node\ObjectProperty::create(
+                Parser\Node\StringNode::fromRaw(Parser\Raw::fromString('"users"')),
+                Parser\Node\ArrayNode::create(
+                    Parser\Node\ObjectNode::create(
+                        Parser\Node\ObjectProperty::create(
+                            Parser\Node\StringNode::fromRaw(Parser\Raw::fromString('"id"')),
+                            Parser\Node\NumberNode::fromRaw(Parser\Raw::fromString('1')),
                         ),
-                        Node\ObjectProperty::create(
-                            Node\StringNode::fromRaw(Raw::fromString('"name"')),
-                            Node\StringNode::fromRaw(Raw::fromString('"Alice"')),
+                        Parser\Node\ObjectProperty::create(
+                            Parser\Node\StringNode::fromRaw(Parser\Raw::fromString('"name"')),
+                            Parser\Node\StringNode::fromRaw(Parser\Raw::fromString('"Alice"')),
                         ),
-                        Node\ObjectProperty::create(
-                            Node\StringNode::fromRaw(Raw::fromString('"active"')),
-                            Node\BooleanNode::fromBool(true),
+                        Parser\Node\ObjectProperty::create(
+                            Parser\Node\StringNode::fromRaw(Parser\Raw::fromString('"active"')),
+                            Parser\Node\BooleanNode::fromBool(true),
                         ),
                     ),
-                    Node\ObjectNode::create(
-                        Node\ObjectProperty::create(
-                            Node\StringNode::fromRaw(Raw::fromString('"id"')),
-                            Node\NumberNode::fromRaw(Raw::fromString('2')),
+                    Parser\Node\ObjectNode::create(
+                        Parser\Node\ObjectProperty::create(
+                            Parser\Node\StringNode::fromRaw(Parser\Raw::fromString('"id"')),
+                            Parser\Node\NumberNode::fromRaw(Parser\Raw::fromString('2')),
                         ),
-                        Node\ObjectProperty::create(
-                            Node\StringNode::fromRaw(Raw::fromString('"name"')),
-                            Node\StringNode::fromRaw(Raw::fromString('"Bob"')),
+                        Parser\Node\ObjectProperty::create(
+                            Parser\Node\StringNode::fromRaw(Parser\Raw::fromString('"name"')),
+                            Parser\Node\StringNode::fromRaw(Parser\Raw::fromString('"Bob"')),
                         ),
-                        Node\ObjectProperty::create(
-                            Node\StringNode::fromRaw(Raw::fromString('"active"')),
-                            Node\BooleanNode::fromBool(false),
+                        Parser\Node\ObjectProperty::create(
+                            Parser\Node\StringNode::fromRaw(Parser\Raw::fromString('"active"')),
+                            Parser\Node\BooleanNode::fromBool(false),
                         ),
                     ),
                 ),
             ),
-            Node\ObjectProperty::create(
-                Node\StringNode::fromRaw(Raw::fromString('"total"')),
-                Node\NumberNode::fromRaw(Raw::fromString('2')),
+            Parser\Node\ObjectProperty::create(
+                Parser\Node\StringNode::fromRaw(Parser\Raw::fromString('"total"')),
+                Parser\Node\NumberNode::fromRaw(Parser\Raw::fromString('2')),
             ),
         );
 
@@ -1534,12 +1527,12 @@ final class ParserTest extends Framework\TestCase
         string $json,
         string $expected
     ): void {
-        $raw = Raw::fromString($json);
-        $maximumDepth = MaximumDepth::default();
-        $format = Format::compact();
+        $raw = Parser\Raw::fromString($json);
+        $maximumDepth = Parser\MaximumDepth::default();
+        $format = Parser\Format::compact();
 
         $parser = new Parser\Parser();
-        $printer = new Printer();
+        $printer = new Parser\Printer();
 
         $node = $parser->parse(
             $raw,
@@ -1560,73 +1553,9 @@ final class ParserTest extends Framework\TestCase
     public static function provideRoundTripJson(): iterable
     {
         $values = [
-            'null' => [
-                'null',
-                'null',
-            ],
-            'true' => [
-                'true',
-                'true',
-            ],
-            'false' => [
-                'false',
-                'false',
-            ],
-            'integer' => [
-                '42',
-                '42',
-            ],
-            'negative-integer' => [
-                '-42',
-                '-42',
-            ],
-            'float-decimal' => [
-                '1.5',
-                '1.5',
-            ],
-            'float-one-point-zero' => [
-                '1.0',
-                '1.0',
-            ],
-            'float-exponent' => [
-                '1e10',
-                '1e10',
-            ],
-            'float-negative-exponent' => [
-                '1E-5',
-                '1E-5',
-            ],
-            'string' => [
-                '"hello"',
-                '"hello"',
-            ],
-            'string-with-slash' => [
-                '"a/b"',
-                '"a/b"',
-            ],
-            'string-with-escaped-slash' => [
-                '"a\\/b"',
-                '"a\\/b"',
-            ],
-            'string-with-non-ascii' => [
-                "\"\xE6\x97\xA5\xE6\x9C\xAC\"",
-                "\"\xE6\x97\xA5\xE6\x9C\xAC\"",
-            ],
-            'string-with-unicode-escape' => [
-                '"\\u00E9"',
-                '"\\u00E9"',
-            ],
             'array-with-strings' => [
                 '["a/b","\\u00e9","\\/"]',
                 '["a/b","\\u00e9","\\/"]',
-            ],
-            'empty-array' => [
-                '[]',
-                '[]',
-            ],
-            'empty-object' => [
-                '{}',
-                '{}',
             ],
             'compact-array' => [
                 '[1,2,3]',
@@ -1636,33 +1565,97 @@ final class ParserTest extends Framework\TestCase
                 '{"a":1,"b":2}',
                 '{"a":1,"b":2}',
             ],
+            'empty-array' => [
+                '[]',
+                '[]',
+            ],
+            'empty-object' => [
+                '{}',
+                '{}',
+            ],
+            'false' => [
+                'false',
+                'false',
+            ],
+            'float-decimal' => [
+                '1.5',
+                '1.5',
+            ],
+            'float-exponent' => [
+                '1e10',
+                '1e10',
+            ],
+            'float-negative-exponent' => [
+                '1E-5',
+                '1E-5',
+            ],
+            'float-one-point-zero' => [
+                '1.0',
+                '1.0',
+            ],
+            'integer' => [
+                '42',
+                '42',
+            ],
+            'negative-integer' => [
+                '-42',
+                '-42',
+            ],
+            'nested' => [
+                '{"items":[{"id":1}],"ok":true}',
+                '{"items":[{"id":1}],"ok":true}',
+            ],
+            'null' => [
+                'null',
+                'null',
+            ],
             'object-with-duplicate-property-names' => [
                 '{"a":1,"a":2}',
                 '{"a":1,"a":2}',
-            ],
-            'object-with-slash-in-property-name' => [
-                '{"a/b":1}',
-                '{"a/b":1}',
             ],
             'object-with-escaped-slash-in-property-name' => [
                 '{"a\\/b":1}',
                 '{"a\\/b":1}',
             ],
-            'object-with-unicode-escape-in-property-name' => [
-                '{"\\u00e9":1}',
-                '{"\\u00e9":1}',
-            ],
             'object-with-non-ascii-property-name' => [
                 "{\"\xE6\x97\xA5\":1}",
                 "{\"\xE6\x97\xA5\":1}",
             ],
+            'object-with-slash-in-property-name' => [
+                '{"a/b":1}',
+                '{"a/b":1}',
+            ],
+            'object-with-unicode-escape-in-property-name' => [
+                '{"\\u00e9":1}',
+                '{"\\u00e9":1}',
+            ],
+            'string' => [
+                '"hello"',
+                '"hello"',
+            ],
+            'string-with-escaped-slash' => [
+                '"a\\/b"',
+                '"a\\/b"',
+            ],
+            'string-with-non-ascii' => [
+                "\"\xE6\x97\xA5\xE6\x9C\xAC\"",
+                "\"\xE6\x97\xA5\xE6\x9C\xAC\"",
+            ],
+            'string-with-slash' => [
+                '"a/b"',
+                '"a/b"',
+            ],
+            'string-with-unicode-escape' => [
+                '"\\u00E9"',
+                '"\\u00E9"',
+            ],
+            'true' => [
+                'true',
+                'true',
+            ],
             'whitespace-stripped' => [
                 '  { "a" : 1 }  ',
                 '{"a":1}',
-            ],
-            'nested' => [
-                '{"items":[{"id":1}],"ok":true}',
-                '{"items":[{"id":1}],"ok":true}',
             ],
         ];
 
@@ -1676,12 +1669,12 @@ final class ParserTest extends Framework\TestCase
 
     public function testParseThrowsInvalidJsonForInvalidBoolean(): void
     {
-        $raw = Raw::fromString('tru');
-        $maximumDepth = MaximumDepth::default();
+        $raw = Parser\Raw::fromString('tru');
+        $maximumDepth = Parser\MaximumDepth::default();
 
         $parser = new Parser\Parser();
 
-        $this->expectException(InvalidJson::class);
+        $this->expectException(Parser\InvalidJson::class);
 
         $parser->parse(
             $raw,
@@ -1691,12 +1684,12 @@ final class ParserTest extends Framework\TestCase
 
     public function testParseThrowsInvalidJsonForInvalidNull(): void
     {
-        $raw = Raw::fromString('nul');
-        $maximumDepth = MaximumDepth::default();
+        $raw = Parser\Raw::fromString('nul');
+        $maximumDepth = Parser\MaximumDepth::default();
 
         $parser = new Parser\Parser();
 
-        $this->expectException(InvalidJson::class);
+        $this->expectException(Parser\InvalidJson::class);
 
         $parser->parse(
             $raw,
@@ -1706,12 +1699,12 @@ final class ParserTest extends Framework\TestCase
 
     public function testParseThrowsInvalidJsonForInvalidCharacter(): void
     {
-        $raw = Raw::fromString('&');
-        $maximumDepth = MaximumDepth::default();
+        $raw = Parser\Raw::fromString('&');
+        $maximumDepth = Parser\MaximumDepth::default();
 
         $parser = new Parser\Parser();
 
-        $this->expectException(InvalidJson::class);
+        $this->expectException(Parser\InvalidJson::class);
 
         $parser->parse(
             $raw,
@@ -1721,12 +1714,12 @@ final class ParserTest extends Framework\TestCase
 
     public function testParseThrowsInvalidJsonForTruncatedEscapeSequence(): void
     {
-        $raw = Raw::fromString('"hello\\');
-        $maximumDepth = MaximumDepth::default();
+        $raw = Parser\Raw::fromString('"hello\\');
+        $maximumDepth = Parser\MaximumDepth::default();
 
         $parser = new Parser\Parser();
 
-        $this->expectException(InvalidJson::class);
+        $this->expectException(Parser\InvalidJson::class);
 
         $parser->parse(
             $raw,
@@ -1736,12 +1729,12 @@ final class ParserTest extends Framework\TestCase
 
     public function testParseThrowsInvalidJsonForMissingCommaOrBracketInArray(): void
     {
-        $raw = Raw::fromString('[1 2]');
-        $maximumDepth = MaximumDepth::default();
+        $raw = Parser\Raw::fromString('[1 2]');
+        $maximumDepth = Parser\MaximumDepth::default();
 
         $parser = new Parser\Parser();
 
-        $this->expectException(InvalidJson::class);
+        $this->expectException(Parser\InvalidJson::class);
 
         $parser->parse(
             $raw,
@@ -1751,12 +1744,12 @@ final class ParserTest extends Framework\TestCase
 
     public function testParseThrowsInvalidJsonForMissingCommaOrBraceInObject(): void
     {
-        $raw = Raw::fromString('{"a": 1 "b": 2}');
-        $maximumDepth = MaximumDepth::default();
+        $raw = Parser\Raw::fromString('{"a": 1 "b": 2}');
+        $maximumDepth = Parser\MaximumDepth::default();
 
         $parser = new Parser\Parser();
 
-        $this->expectException(InvalidJson::class);
+        $this->expectException(Parser\InvalidJson::class);
 
         $parser->parse(
             $raw,
@@ -1766,12 +1759,12 @@ final class ParserTest extends Framework\TestCase
 
     public function testParseThrowsInvalidJsonForMissingExponentDigitAfterSign(): void
     {
-        $raw = Raw::fromString('1e+');
-        $maximumDepth = MaximumDepth::default();
+        $raw = Parser\Raw::fromString('1e+');
+        $maximumDepth = Parser\MaximumDepth::default();
 
         $parser = new Parser\Parser();
 
-        $this->expectException(InvalidJson::class);
+        $this->expectException(Parser\InvalidJson::class);
 
         $parser->parse(
             $raw,
@@ -1781,8 +1774,8 @@ final class ParserTest extends Framework\TestCase
 
     public function testParseParsesFloatZeroPointOne(): void
     {
-        $raw = Raw::fromString('0.1');
-        $maximumDepth = MaximumDepth::default();
+        $raw = Parser\Raw::fromString('0.1');
+        $maximumDepth = Parser\MaximumDepth::default();
 
         $parser = new Parser\Parser();
 
@@ -1791,15 +1784,15 @@ final class ParserTest extends Framework\TestCase
             $maximumDepth,
         );
 
-        $expected = Node\NumberNode::fromRaw(Raw::fromString('0.1'));
+        $expected = Parser\Node\NumberNode::fromRaw(Parser\Raw::fromString('0.1'));
 
         self::assertEquals($expected, $node);
     }
 
     public function testParseParsesNegativeFloat(): void
     {
-        $raw = Raw::fromString('-3.14');
-        $maximumDepth = MaximumDepth::default();
+        $raw = Parser\Raw::fromString('-3.14');
+        $maximumDepth = Parser\MaximumDepth::default();
 
         $parser = new Parser\Parser();
 
@@ -1808,7 +1801,7 @@ final class ParserTest extends Framework\TestCase
             $maximumDepth,
         );
 
-        $expected = Node\NumberNode::fromRaw(Raw::fromString('-3.14'));
+        $expected = Parser\Node\NumberNode::fromRaw(Parser\Raw::fromString('-3.14'));
 
         self::assertEquals($expected, $node);
     }
@@ -1822,8 +1815,8 @@ final class ParserTest extends Framework\TestCase
         int $line,
         int $column
     ): void {
-        $raw = Raw::fromString($json);
-        $maximumDepth = MaximumDepth::default();
+        $raw = Parser\Raw::fromString($json);
+        $maximumDepth = Parser\MaximumDepth::default();
 
         $parser = new Parser\Parser();
 
@@ -1832,8 +1825,8 @@ final class ParserTest extends Framework\TestCase
                 $raw,
                 $maximumDepth,
             );
-        } catch (InvalidJson $exception) {
-            $position = $exception->position();
+        } catch (Parser\InvalidJson $invalidJson) {
+            $position = $invalidJson->position();
 
             self::assertSame($offset, $position->offset()->toInt());
             self::assertSame($line, $position->line()->toInt());
@@ -1851,20 +1844,8 @@ final class ParserTest extends Framework\TestCase
     public static function provideJsonOffsetLineAndColumn(): iterable
     {
         $values = [
-            'at-start-of-document' => [
-                'x',
-                0,
-                1,
-                1,
-            ],
-            'on-first-line' => [
-                '[1 2]',
-                3,
-                1,
-                4,
-            ],
-            'after-line-feed' => [
-                "[\n1 2]",
+            'after-carriage-return' => [
+                "[\r1 2]",
                 4,
                 2,
                 3,
@@ -1875,33 +1856,21 @@ final class ParserTest extends Framework\TestCase
                 2,
                 3,
             ],
-            'after-carriage-return' => [
-                "[\r1 2]",
+            'after-line-feed' => [
+                "[\n1 2]",
                 4,
                 2,
                 3,
-            ],
-            'after-several-line-breaks' => [
-                "[\n\r\n\r1 2]",
-                7,
-                4,
-                3,
-            ],
-            'at-start-of-line' => [
-                "[1,\n]",
-                4,
-                2,
-                1,
-            ],
-            'after-multibyte-characters' => [
-                "[\"\xC3\xA9\xE2\x82\xAC\xF0\x9F\x98\x80\" x]",
-                13,
-                1,
-                8,
             ],
             'after-lowest-and-highest-continuation-byte' => [
                 "[\"\x7F\xC2\x80\xEF\xBF\xBF\" x]",
                 10,
+                1,
+                8,
+            ],
+            'after-multibyte-characters' => [
+                "[\"\xC3\xA9\xE2\x82\xAC\xF0\x9F\x98\x80\" x]",
+                13,
                 1,
                 8,
             ],
@@ -1910,6 +1879,30 @@ final class ParserTest extends Framework\TestCase
                 7,
                 2,
                 1,
+            ],
+            'after-several-line-breaks' => [
+                "[\n\r\n\r1 2]",
+                7,
+                4,
+                3,
+            ],
+            'at-start-of-document' => [
+                'x',
+                0,
+                1,
+                1,
+            ],
+            'at-start-of-line' => [
+                "[1,\n]",
+                4,
+                2,
+                1,
+            ],
+            'on-first-line' => [
+                '[1 2]',
+                3,
+                1,
+                4,
             ],
         ];
 
@@ -1925,8 +1918,8 @@ final class ParserTest extends Framework\TestCase
 
     public function testParseThrowsInvalidJsonWithCorrectPositionForTrailingContent(): void
     {
-        $raw = Raw::fromString('null  x');
-        $maximumDepth = MaximumDepth::default();
+        $raw = Parser\Raw::fromString('null  x');
+        $maximumDepth = Parser\MaximumDepth::default();
 
         $parser = new Parser\Parser();
 
@@ -1935,8 +1928,8 @@ final class ParserTest extends Framework\TestCase
                 $raw,
                 $maximumDepth,
             );
-        } catch (InvalidJson $exception) {
-            self::assertSame(6, $exception->position()->offset()->toInt());
+        } catch (Parser\InvalidJson $invalidJson) {
+            self::assertSame(6, $invalidJson->position()->offset()->toInt());
 
             return;
         }
@@ -1946,8 +1939,8 @@ final class ParserTest extends Framework\TestCase
 
     public function testParseThrowsInvalidJsonWithCorrectPositionForInvalidEscapeSequence(): void
     {
-        $raw = Raw::fromString('"ab\\x"');
-        $maximumDepth = MaximumDepth::default();
+        $raw = Parser\Raw::fromString('"ab\\x"');
+        $maximumDepth = Parser\MaximumDepth::default();
 
         $parser = new Parser\Parser();
 
@@ -1956,8 +1949,8 @@ final class ParserTest extends Framework\TestCase
                 $raw,
                 $maximumDepth,
             );
-        } catch (InvalidJson $exception) {
-            self::assertSame(4, $exception->position()->offset()->toInt());
+        } catch (Parser\InvalidJson $invalidJson) {
+            self::assertSame(4, $invalidJson->position()->offset()->toInt());
 
             return;
         }
@@ -1967,12 +1960,12 @@ final class ParserTest extends Framework\TestCase
 
     public function testParseThrowsInvalidJsonForHighSurrogateFollowedByNonBackslash(): void
     {
-        $raw = Raw::fromString('"\\uD800a"');
-        $maximumDepth = MaximumDepth::default();
+        $raw = Parser\Raw::fromString('"\\uD800a"');
+        $maximumDepth = Parser\MaximumDepth::default();
 
         $parser = new Parser\Parser();
 
-        $this->expectException(InvalidJson::class);
+        $this->expectException(Parser\InvalidJson::class);
 
         $parser->parse(
             $raw,
@@ -1982,12 +1975,12 @@ final class ParserTest extends Framework\TestCase
 
     public function testParseThrowsInvalidJsonForHighSurrogateFollowedByTrailingBackslash(): void
     {
-        $raw = Raw::fromString('"\\uD800\\');
-        $maximumDepth = MaximumDepth::default();
+        $raw = Parser\Raw::fromString('"\\uD800\\');
+        $maximumDepth = Parser\MaximumDepth::default();
 
         $parser = new Parser\Parser();
 
-        $this->expectException(InvalidJson::class);
+        $this->expectException(Parser\InvalidJson::class);
         $this->expectExceptionMessage('Expected low surrogate after high surrogate at line 1, column 8.');
 
         $parser->parse(
@@ -1998,12 +1991,12 @@ final class ParserTest extends Framework\TestCase
 
     public function testParseThrowsInvalidJsonForHighSurrogateFollowedByTruncatedUnicodeEscape(): void
     {
-        $raw = Raw::fromString('"\\uD800\\u');
-        $maximumDepth = MaximumDepth::default();
+        $raw = Parser\Raw::fromString('"\\uD800\\u');
+        $maximumDepth = Parser\MaximumDepth::default();
 
         $parser = new Parser\Parser();
 
-        $this->expectException(InvalidJson::class);
+        $this->expectException(Parser\InvalidJson::class);
         $this->expectExceptionMessage('Expected 4 hex digits at line 1, column 10.');
 
         $parser->parse(
@@ -2014,8 +2007,8 @@ final class ParserTest extends Framework\TestCase
 
     public function testParseParsesMultiDigitInteger(): void
     {
-        $raw = Raw::fromString('12345');
-        $maximumDepth = MaximumDepth::default();
+        $raw = Parser\Raw::fromString('12345');
+        $maximumDepth = Parser\MaximumDepth::default();
 
         $parser = new Parser\Parser();
 
@@ -2024,15 +2017,15 @@ final class ParserTest extends Framework\TestCase
             $maximumDepth,
         );
 
-        $expected = Node\NumberNode::fromRaw(Raw::fromString('12345'));
+        $expected = Parser\Node\NumberNode::fromRaw(Parser\Raw::fromString('12345'));
 
         self::assertEquals($expected, $node);
     }
 
     public function testParseParsesFloatWithMultipleDecimalDigits(): void
     {
-        $raw = Raw::fromString('1.234');
-        $maximumDepth = MaximumDepth::default();
+        $raw = Parser\Raw::fromString('1.234');
+        $maximumDepth = Parser\MaximumDepth::default();
 
         $parser = new Parser\Parser();
 
@@ -2041,15 +2034,15 @@ final class ParserTest extends Framework\TestCase
             $maximumDepth,
         );
 
-        $expected = Node\NumberNode::fromRaw(Raw::fromString('1.234'));
+        $expected = Parser\Node\NumberNode::fromRaw(Parser\Raw::fromString('1.234'));
 
         self::assertEquals($expected, $node);
     }
 
     public function testParseParsesFloatWithMultipleExponentDigits(): void
     {
-        $raw = Raw::fromString('1e12');
-        $maximumDepth = MaximumDepth::default();
+        $raw = Parser\Raw::fromString('1e12');
+        $maximumDepth = Parser\MaximumDepth::default();
 
         $parser = new Parser\Parser();
 
@@ -2058,19 +2051,19 @@ final class ParserTest extends Framework\TestCase
             $maximumDepth,
         );
 
-        $expected = Node\NumberNode::fromRaw(Raw::fromString('1e12'));
+        $expected = Parser\Node\NumberNode::fromRaw(Parser\Raw::fromString('1e12'));
 
         self::assertEquals($expected, $node);
     }
 
     public function testParseThrowsInvalidJsonForObjectWithMissingPropertyName(): void
     {
-        $raw = Raw::fromString('{:1}');
-        $maximumDepth = MaximumDepth::default();
+        $raw = Parser\Raw::fromString('{:1}');
+        $maximumDepth = Parser\MaximumDepth::default();
 
         $parser = new Parser\Parser();
 
-        $this->expectException(InvalidJson::class);
+        $this->expectException(Parser\InvalidJson::class);
 
         $parser->parse(
             $raw,
@@ -2080,12 +2073,12 @@ final class ParserTest extends Framework\TestCase
 
     public function testParseThrowsInvalidJsonForObjectPropertyNameAtEndOfInput(): void
     {
-        $raw = Raw::fromString('{"a":1,');
-        $maximumDepth = MaximumDepth::default();
+        $raw = Parser\Raw::fromString('{"a":1,');
+        $maximumDepth = Parser\MaximumDepth::default();
 
         $parser = new Parser\Parser();
 
-        $this->expectException(InvalidJson::class);
+        $this->expectException(Parser\InvalidJson::class);
 
         $parser->parse(
             $raw,
@@ -2095,12 +2088,12 @@ final class ParserTest extends Framework\TestCase
 
     public function testParseThrowsInvalidJsonForObjectMissingColonAtEndOfInput(): void
     {
-        $raw = Raw::fromString('{"a"');
-        $maximumDepth = MaximumDepth::default();
+        $raw = Parser\Raw::fromString('{"a"');
+        $maximumDepth = Parser\MaximumDepth::default();
 
         $parser = new Parser\Parser();
 
-        $this->expectException(InvalidJson::class);
+        $this->expectException(Parser\InvalidJson::class);
 
         $parser->parse(
             $raw,
@@ -2110,8 +2103,8 @@ final class ParserTest extends Framework\TestCase
 
     public function testParseParsesObjectWithWhitespaceAroundStructure(): void
     {
-        $raw = Raw::fromString(' { "a" : 1 , "b" : 2 } ');
-        $maximumDepth = MaximumDepth::default();
+        $raw = Parser\Raw::fromString(' { "a" : 1 , "b" : 2 } ');
+        $maximumDepth = Parser\MaximumDepth::default();
 
         $parser = new Parser\Parser();
 
@@ -2120,14 +2113,14 @@ final class ParserTest extends Framework\TestCase
             $maximumDepth,
         );
 
-        $expected = Node\ObjectNode::create(
-            Node\ObjectProperty::create(
-                Node\StringNode::fromRaw(Raw::fromString('"a"')),
-                Node\NumberNode::fromRaw(Raw::fromString('1')),
+        $expected = Parser\Node\ObjectNode::create(
+            Parser\Node\ObjectProperty::create(
+                Parser\Node\StringNode::fromRaw(Parser\Raw::fromString('"a"')),
+                Parser\Node\NumberNode::fromRaw(Parser\Raw::fromString('1')),
             ),
-            Node\ObjectProperty::create(
-                Node\StringNode::fromRaw(Raw::fromString('"b"')),
-                Node\NumberNode::fromRaw(Raw::fromString('2')),
+            Parser\Node\ObjectProperty::create(
+                Parser\Node\StringNode::fromRaw(Parser\Raw::fromString('"b"')),
+                Parser\Node\NumberNode::fromRaw(Parser\Raw::fromString('2')),
             ),
         );
 
@@ -2136,8 +2129,8 @@ final class ParserTest extends Framework\TestCase
 
     public function testParseParsesArrayWithWhitespace(): void
     {
-        $raw = Raw::fromString(' [ 1 , 2 , 3 ] ');
-        $maximumDepth = MaximumDepth::default();
+        $raw = Parser\Raw::fromString(' [ 1 , 2 , 3 ] ');
+        $maximumDepth = Parser\MaximumDepth::default();
 
         $parser = new Parser\Parser();
 
@@ -2146,10 +2139,10 @@ final class ParserTest extends Framework\TestCase
             $maximumDepth,
         );
 
-        $expected = Node\ArrayNode::create(
-            Node\NumberNode::fromRaw(Raw::fromString('1')),
-            Node\NumberNode::fromRaw(Raw::fromString('2')),
-            Node\NumberNode::fromRaw(Raw::fromString('3')),
+        $expected = Parser\Node\ArrayNode::create(
+            Parser\Node\NumberNode::fromRaw(Parser\Raw::fromString('1')),
+            Parser\Node\NumberNode::fromRaw(Parser\Raw::fromString('2')),
+            Parser\Node\NumberNode::fromRaw(Parser\Raw::fromString('3')),
         );
 
         self::assertEquals($expected, $node);
@@ -2157,12 +2150,12 @@ final class ParserTest extends Framework\TestCase
 
     public function testParseThrowsInvalidJsonForArrayEndOfInputBeforeClose(): void
     {
-        $raw = Raw::fromString('[1,');
-        $maximumDepth = MaximumDepth::default();
+        $raw = Parser\Raw::fromString('[1,');
+        $maximumDepth = Parser\MaximumDepth::default();
 
         $parser = new Parser\Parser();
 
-        $this->expectException(InvalidJson::class);
+        $this->expectException(Parser\InvalidJson::class);
 
         $parser->parse(
             $raw,
@@ -2172,12 +2165,12 @@ final class ParserTest extends Framework\TestCase
 
     public function testParseThrowsInvalidJsonForObjectEndOfInputAfterValue(): void
     {
-        $raw = Raw::fromString('{"a":1');
-        $maximumDepth = MaximumDepth::default();
+        $raw = Parser\Raw::fromString('{"a":1');
+        $maximumDepth = Parser\MaximumDepth::default();
 
         $parser = new Parser\Parser();
 
-        $this->expectException(InvalidJson::class);
+        $this->expectException(Parser\InvalidJson::class);
 
         $parser->parse(
             $raw,
@@ -2187,8 +2180,8 @@ final class ParserTest extends Framework\TestCase
 
     public function testParseParsesFloatWithCapitalE(): void
     {
-        $raw = Raw::fromString('5E3');
-        $maximumDepth = MaximumDepth::default();
+        $raw = Parser\Raw::fromString('5E3');
+        $maximumDepth = Parser\MaximumDepth::default();
 
         $parser = new Parser\Parser();
 
@@ -2197,15 +2190,15 @@ final class ParserTest extends Framework\TestCase
             $maximumDepth,
         );
 
-        $expected = Node\NumberNode::fromRaw(Raw::fromString('5E3'));
+        $expected = Parser\Node\NumberNode::fromRaw(Parser\Raw::fromString('5E3'));
 
         self::assertEquals($expected, $node);
     }
 
     public function testParseParsesFloatWithExponentAndNoSign(): void
     {
-        $raw = Raw::fromString('2e3');
-        $maximumDepth = MaximumDepth::default();
+        $raw = Parser\Raw::fromString('2e3');
+        $maximumDepth = Parser\MaximumDepth::default();
 
         $parser = new Parser\Parser();
 
@@ -2214,19 +2207,19 @@ final class ParserTest extends Framework\TestCase
             $maximumDepth,
         );
 
-        $expected = Node\NumberNode::fromRaw(Raw::fromString('2e3'));
+        $expected = Parser\Node\NumberNode::fromRaw(Parser\Raw::fromString('2e3'));
 
         self::assertEquals($expected, $node);
     }
 
     public function testParseThrowsInvalidJsonForNumberWithInvalidDigitAfterMinus(): void
     {
-        $raw = Raw::fromString('-a');
-        $maximumDepth = MaximumDepth::default();
+        $raw = Parser\Raw::fromString('-a');
+        $maximumDepth = Parser\MaximumDepth::default();
 
         $parser = new Parser\Parser();
 
-        $this->expectException(InvalidJson::class);
+        $this->expectException(Parser\InvalidJson::class);
 
         $parser->parse(
             $raw,
@@ -2236,12 +2229,12 @@ final class ParserTest extends Framework\TestCase
 
     public function testParseThrowsInvalidJsonForDecimalPointFollowedByNonDigit(): void
     {
-        $raw = Raw::fromString('1.a');
-        $maximumDepth = MaximumDepth::default();
+        $raw = Parser\Raw::fromString('1.a');
+        $maximumDepth = Parser\MaximumDepth::default();
 
         $parser = new Parser\Parser();
 
-        $this->expectException(InvalidJson::class);
+        $this->expectException(Parser\InvalidJson::class);
 
         $parser->parse(
             $raw,
@@ -2251,12 +2244,12 @@ final class ParserTest extends Framework\TestCase
 
     public function testParseThrowsInvalidJsonForExponentFollowedByNonDigit(): void
     {
-        $raw = Raw::fromString('1ea');
-        $maximumDepth = MaximumDepth::default();
+        $raw = Parser\Raw::fromString('1ea');
+        $maximumDepth = Parser\MaximumDepth::default();
 
         $parser = new Parser\Parser();
 
-        $this->expectException(InvalidJson::class);
+        $this->expectException(Parser\InvalidJson::class);
 
         $parser->parse(
             $raw,
@@ -2266,12 +2259,12 @@ final class ParserTest extends Framework\TestCase
 
     public function testParseThrowsInvalidJsonForExponentSignFollowedByNonDigit(): void
     {
-        $raw = Raw::fromString('1e-a');
-        $maximumDepth = MaximumDepth::default();
+        $raw = Parser\Raw::fromString('1e-a');
+        $maximumDepth = Parser\MaximumDepth::default();
 
         $parser = new Parser\Parser();
 
-        $this->expectException(InvalidJson::class);
+        $this->expectException(Parser\InvalidJson::class);
 
         $parser->parse(
             $raw,
@@ -2281,12 +2274,12 @@ final class ParserTest extends Framework\TestCase
 
     public function testParseThrowsInvalidJsonForLoneSurrogateWithBackslashNotFollowedByU(): void
     {
-        $raw = Raw::fromString('"\\uD800\\n"');
-        $maximumDepth = MaximumDepth::default();
+        $raw = Parser\Raw::fromString('"\\uD800\\n"');
+        $maximumDepth = Parser\MaximumDepth::default();
 
         $parser = new Parser\Parser();
 
-        $this->expectException(InvalidJson::class);
+        $this->expectException(Parser\InvalidJson::class);
 
         $parser->parse(
             $raw,
@@ -2296,8 +2289,8 @@ final class ParserTest extends Framework\TestCase
 
     public function testParseParsesNumberZeroFollowedByCommaInArray(): void
     {
-        $raw = Raw::fromString('[0,1]');
-        $maximumDepth = MaximumDepth::default();
+        $raw = Parser\Raw::fromString('[0,1]');
+        $maximumDepth = Parser\MaximumDepth::default();
 
         $parser = new Parser\Parser();
 
@@ -2306,9 +2299,9 @@ final class ParserTest extends Framework\TestCase
             $maximumDepth,
         );
 
-        $expected = Node\ArrayNode::create(
-            Node\NumberNode::fromRaw(Raw::fromString('0')),
-            Node\NumberNode::fromRaw(Raw::fromString('1')),
+        $expected = Parser\Node\ArrayNode::create(
+            Parser\Node\NumberNode::fromRaw(Parser\Raw::fromString('0')),
+            Parser\Node\NumberNode::fromRaw(Parser\Raw::fromString('1')),
         );
 
         self::assertEquals($expected, $node);
@@ -2316,8 +2309,8 @@ final class ParserTest extends Framework\TestCase
 
     public function testParseParsesNegativeIntegerWithMultipleDigits(): void
     {
-        $raw = Raw::fromString('-999');
-        $maximumDepth = MaximumDepth::default();
+        $raw = Parser\Raw::fromString('-999');
+        $maximumDepth = Parser\MaximumDepth::default();
 
         $parser = new Parser\Parser();
 
@@ -2326,15 +2319,15 @@ final class ParserTest extends Framework\TestCase
             $maximumDepth,
         );
 
-        $expected = Node\NumberNode::fromRaw(Raw::fromString('-999'));
+        $expected = Parser\Node\NumberNode::fromRaw(Parser\Raw::fromString('-999'));
 
         self::assertEquals($expected, $node);
     }
 
     public function testParseThrowsInvalidJsonAtCorrectPositionForMissingPropertyNameInObject(): void
     {
-        $raw = Raw::fromString('{123}');
-        $maximumDepth = MaximumDepth::default();
+        $raw = Parser\Raw::fromString('{123}');
+        $maximumDepth = Parser\MaximumDepth::default();
 
         $parser = new Parser\Parser();
 
@@ -2343,8 +2336,8 @@ final class ParserTest extends Framework\TestCase
                 $raw,
                 $maximumDepth,
             );
-        } catch (InvalidJson $exception) {
-            self::assertSame(1, $exception->position()->offset()->toInt());
+        } catch (Parser\InvalidJson $invalidJson) {
+            self::assertSame(1, $invalidJson->position()->offset()->toInt());
 
             return;
         }
@@ -2354,8 +2347,8 @@ final class ParserTest extends Framework\TestCase
 
     public function testParseThrowsInvalidJsonAtCorrectPositionForMissingColonInObject(): void
     {
-        $raw = Raw::fromString('{"a" 1}');
-        $maximumDepth = MaximumDepth::default();
+        $raw = Parser\Raw::fromString('{"a" 1}');
+        $maximumDepth = Parser\MaximumDepth::default();
 
         $parser = new Parser\Parser();
 
@@ -2364,8 +2357,8 @@ final class ParserTest extends Framework\TestCase
                 $raw,
                 $maximumDepth,
             );
-        } catch (InvalidJson $exception) {
-            self::assertSame(5, $exception->position()->offset()->toInt());
+        } catch (Parser\InvalidJson $invalidJson) {
+            self::assertSame(5, $invalidJson->position()->offset()->toInt());
 
             return;
         }
@@ -2375,8 +2368,8 @@ final class ParserTest extends Framework\TestCase
 
     public function testParseThrowsInvalidJsonAtCorrectPositionForMissingCommaInObject(): void
     {
-        $raw = Raw::fromString('{"a":1 "b":2}');
-        $maximumDepth = MaximumDepth::default();
+        $raw = Parser\Raw::fromString('{"a":1 "b":2}');
+        $maximumDepth = Parser\MaximumDepth::default();
 
         $parser = new Parser\Parser();
 
@@ -2385,8 +2378,8 @@ final class ParserTest extends Framework\TestCase
                 $raw,
                 $maximumDepth,
             );
-        } catch (InvalidJson $exception) {
-            self::assertSame(7, $exception->position()->offset()->toInt());
+        } catch (Parser\InvalidJson $invalidJson) {
+            self::assertSame(7, $invalidJson->position()->offset()->toInt());
 
             return;
         }
@@ -2396,8 +2389,8 @@ final class ParserTest extends Framework\TestCase
 
     public function testParseThrowsInvalidJsonAtCorrectPositionForMissingCommaInArray(): void
     {
-        $raw = Raw::fromString('[1 2]');
-        $maximumDepth = MaximumDepth::default();
+        $raw = Parser\Raw::fromString('[1 2]');
+        $maximumDepth = Parser\MaximumDepth::default();
 
         $parser = new Parser\Parser();
 
@@ -2406,8 +2399,8 @@ final class ParserTest extends Framework\TestCase
                 $raw,
                 $maximumDepth,
             );
-        } catch (InvalidJson $exception) {
-            self::assertSame(3, $exception->position()->offset()->toInt());
+        } catch (Parser\InvalidJson $invalidJson) {
+            self::assertSame(3, $invalidJson->position()->offset()->toInt());
 
             return;
         }
@@ -2417,8 +2410,8 @@ final class ParserTest extends Framework\TestCase
 
     public function testParseThrowsInvalidJsonAtCorrectPositionForHighSurrogateWithoutLow(): void
     {
-        $raw = Raw::fromString('"\\uD800"');
-        $maximumDepth = MaximumDepth::default();
+        $raw = Parser\Raw::fromString('"\\uD800"');
+        $maximumDepth = Parser\MaximumDepth::default();
 
         $parser = new Parser\Parser();
 
@@ -2427,8 +2420,8 @@ final class ParserTest extends Framework\TestCase
                 $raw,
                 $maximumDepth,
             );
-        } catch (InvalidJson $exception) {
-            self::assertSame(7, $exception->position()->offset()->toInt());
+        } catch (Parser\InvalidJson $invalidJson) {
+            self::assertSame(7, $invalidJson->position()->offset()->toInt());
 
             return;
         }
@@ -2438,8 +2431,8 @@ final class ParserTest extends Framework\TestCase
 
     public function testParseThrowsInvalidJsonAtCorrectPositionForTruncatedHexQuad(): void
     {
-        $raw = Raw::fromString('"\\u00"');
-        $maximumDepth = MaximumDepth::default();
+        $raw = Parser\Raw::fromString('"\\u00"');
+        $maximumDepth = Parser\MaximumDepth::default();
 
         $parser = new Parser\Parser();
 
@@ -2448,8 +2441,8 @@ final class ParserTest extends Framework\TestCase
                 $raw,
                 $maximumDepth,
             );
-        } catch (InvalidJson $exception) {
-            self::assertSame(3, $exception->position()->offset()->toInt());
+        } catch (Parser\InvalidJson $invalidJson) {
+            self::assertSame(3, $invalidJson->position()->offset()->toInt());
 
             return;
         }
@@ -2459,8 +2452,8 @@ final class ParserTest extends Framework\TestCase
 
     public function testParseThrowsInvalidJsonAtCorrectPositionForInvalidNumberDigit(): void
     {
-        $raw = Raw::fromString('-a');
-        $maximumDepth = MaximumDepth::default();
+        $raw = Parser\Raw::fromString('-a');
+        $maximumDepth = Parser\MaximumDepth::default();
 
         $parser = new Parser\Parser();
 
@@ -2469,8 +2462,8 @@ final class ParserTest extends Framework\TestCase
                 $raw,
                 $maximumDepth,
             );
-        } catch (InvalidJson $exception) {
-            self::assertSame(1, $exception->position()->offset()->toInt());
+        } catch (Parser\InvalidJson $invalidJson) {
+            self::assertSame(1, $invalidJson->position()->offset()->toInt());
 
             return;
         }
@@ -2480,8 +2473,8 @@ final class ParserTest extends Framework\TestCase
 
     public function testParseThrowsForHexQuadWithInvalidCharacterAtStart(): void
     {
-        $raw = Raw::fromString('"\\uXXXX"');
-        $maximumDepth = MaximumDepth::default();
+        $raw = Parser\Raw::fromString('"\\uXXXX"');
+        $maximumDepth = Parser\MaximumDepth::default();
 
         $parser = new Parser\Parser();
 
@@ -2490,8 +2483,8 @@ final class ParserTest extends Framework\TestCase
                 $raw,
                 $maximumDepth,
             );
-        } catch (InvalidJson $exception) {
-            self::assertSame(3, $exception->position()->offset()->toInt());
+        } catch (Parser\InvalidJson $invalidJson) {
+            self::assertSame(3, $invalidJson->position()->offset()->toInt());
 
             return;
         }
@@ -2501,8 +2494,8 @@ final class ParserTest extends Framework\TestCase
 
     public function testParseParsesObjectWithEmptyStringKey(): void
     {
-        $raw = Raw::fromString('{"":1}');
-        $maximumDepth = MaximumDepth::default();
+        $raw = Parser\Raw::fromString('{"":1}');
+        $maximumDepth = Parser\MaximumDepth::default();
 
         $parser = new Parser\Parser();
 
@@ -2511,9 +2504,9 @@ final class ParserTest extends Framework\TestCase
             $maximumDepth,
         );
 
-        $expected = Node\ObjectNode::create(Node\ObjectProperty::create(
-            Node\StringNode::fromRaw(Raw::fromString('""')),
-            Node\NumberNode::fromRaw(Raw::fromString('1')),
+        $expected = Parser\Node\ObjectNode::create(Parser\Node\ObjectProperty::create(
+            Parser\Node\StringNode::fromRaw(Parser\Raw::fromString('""')),
+            Parser\Node\NumberNode::fromRaw(Parser\Raw::fromString('1')),
         ));
 
         self::assertEquals($expected, $node);
@@ -2521,8 +2514,8 @@ final class ParserTest extends Framework\TestCase
 
     public function testParseParsesArrayWithSingleElement(): void
     {
-        $raw = Raw::fromString('[42]');
-        $maximumDepth = MaximumDepth::default();
+        $raw = Parser\Raw::fromString('[42]');
+        $maximumDepth = Parser\MaximumDepth::default();
 
         $parser = new Parser\Parser();
 
@@ -2531,15 +2524,15 @@ final class ParserTest extends Framework\TestCase
             $maximumDepth,
         );
 
-        $expected = Node\ArrayNode::create(Node\NumberNode::fromRaw(Raw::fromString('42')));
+        $expected = Parser\Node\ArrayNode::create(Parser\Node\NumberNode::fromRaw(Parser\Raw::fromString('42')));
 
         self::assertEquals($expected, $node);
     }
 
     public function testParseParsesObjectWithSingleProperty(): void
     {
-        $raw = Raw::fromString('{"a":1}');
-        $maximumDepth = MaximumDepth::default();
+        $raw = Parser\Raw::fromString('{"a":1}');
+        $maximumDepth = Parser\MaximumDepth::default();
 
         $parser = new Parser\Parser();
 
@@ -2548,9 +2541,9 @@ final class ParserTest extends Framework\TestCase
             $maximumDepth,
         );
 
-        $expected = Node\ObjectNode::create(Node\ObjectProperty::create(
-            Node\StringNode::fromRaw(Raw::fromString('"a"')),
-            Node\NumberNode::fromRaw(Raw::fromString('1')),
+        $expected = Parser\Node\ObjectNode::create(Parser\Node\ObjectProperty::create(
+            Parser\Node\StringNode::fromRaw(Parser\Raw::fromString('"a"')),
+            Parser\Node\NumberNode::fromRaw(Parser\Raw::fromString('1')),
         ));
 
         self::assertEquals($expected, $node);
@@ -2558,8 +2551,8 @@ final class ParserTest extends Framework\TestCase
 
     public function testParseThrowsForObjectEmptyAfterOpenBrace(): void
     {
-        $raw = Raw::fromString('{');
-        $maximumDepth = MaximumDepth::default();
+        $raw = Parser\Raw::fromString('{');
+        $maximumDepth = Parser\MaximumDepth::default();
 
         $parser = new Parser\Parser();
 
@@ -2568,8 +2561,8 @@ final class ParserTest extends Framework\TestCase
                 $raw,
                 $maximumDepth,
             );
-        } catch (InvalidJson $exception) {
-            self::assertSame(1, $exception->position()->offset()->toInt());
+        } catch (Parser\InvalidJson $invalidJson) {
+            self::assertSame(1, $invalidJson->position()->offset()->toInt());
 
             return;
         }
@@ -2579,8 +2572,8 @@ final class ParserTest extends Framework\TestCase
 
     public function testParseThrowsForArrayEmptyAfterOpenBracket(): void
     {
-        $raw = Raw::fromString('[');
-        $maximumDepth = MaximumDepth::default();
+        $raw = Parser\Raw::fromString('[');
+        $maximumDepth = Parser\MaximumDepth::default();
 
         $parser = new Parser\Parser();
 
@@ -2589,8 +2582,8 @@ final class ParserTest extends Framework\TestCase
                 $raw,
                 $maximumDepth,
             );
-        } catch (InvalidJson $exception) {
-            self::assertSame(1, $exception->position()->offset()->toInt());
+        } catch (Parser\InvalidJson $invalidJson) {
+            self::assertSame(1, $invalidJson->position()->offset()->toInt());
 
             return;
         }
@@ -2600,8 +2593,8 @@ final class ParserTest extends Framework\TestCase
 
     public function testParseParsesMinPhpInt(): void
     {
-        $raw = Raw::fromString((string) \PHP_INT_MIN);
-        $maximumDepth = MaximumDepth::default();
+        $raw = Parser\Raw::fromString((string) \PHP_INT_MIN);
+        $maximumDepth = Parser\MaximumDepth::default();
 
         $parser = new Parser\Parser();
 
@@ -2610,15 +2603,15 @@ final class ParserTest extends Framework\TestCase
             $maximumDepth,
         );
 
-        $expected = Node\NumberNode::fromRaw($raw);
+        $expected = Parser\Node\NumberNode::fromRaw($raw);
 
         self::assertEquals($expected, $node);
     }
 
     public function testParseParsesMaxPhpInt(): void
     {
-        $raw = Raw::fromString((string) \PHP_INT_MAX);
-        $maximumDepth = MaximumDepth::default();
+        $raw = Parser\Raw::fromString((string) \PHP_INT_MAX);
+        $maximumDepth = Parser\MaximumDepth::default();
 
         $parser = new Parser\Parser();
 
@@ -2627,15 +2620,15 @@ final class ParserTest extends Framework\TestCase
             $maximumDepth,
         );
 
-        $expected = Node\NumberNode::fromRaw($raw);
+        $expected = Parser\Node\NumberNode::fromRaw($raw);
 
         self::assertEquals($expected, $node);
     }
 
     public function testParseParsesObjectWithWhitespaceBeforeClosingBrace(): void
     {
-        $raw = Raw::fromString('{ }');
-        $maximumDepth = MaximumDepth::default();
+        $raw = Parser\Raw::fromString('{ }');
+        $maximumDepth = Parser\MaximumDepth::default();
 
         $parser = new Parser\Parser();
 
@@ -2644,15 +2637,15 @@ final class ParserTest extends Framework\TestCase
             $maximumDepth,
         );
 
-        $expected = Node\ObjectNode::create();
+        $expected = Parser\Node\ObjectNode::create();
 
         self::assertEquals($expected, $node);
     }
 
     public function testParseParsesArrayWithWhitespaceBeforeClosingBracket(): void
     {
-        $raw = Raw::fromString('[ ]');
-        $maximumDepth = MaximumDepth::default();
+        $raw = Parser\Raw::fromString('[ ]');
+        $maximumDepth = Parser\MaximumDepth::default();
 
         $parser = new Parser\Parser();
 
@@ -2661,15 +2654,15 @@ final class ParserTest extends Framework\TestCase
             $maximumDepth,
         );
 
-        $expected = Node\ArrayNode::create();
+        $expected = Parser\Node\ArrayNode::create();
 
         self::assertEquals($expected, $node);
     }
 
     public function testParseParsesLiteralWithExactFalseLength(): void
     {
-        $raw = Raw::fromString('[false]');
-        $maximumDepth = MaximumDepth::default();
+        $raw = Parser\Raw::fromString('[false]');
+        $maximumDepth = Parser\MaximumDepth::default();
 
         $parser = new Parser\Parser();
 
@@ -2678,15 +2671,15 @@ final class ParserTest extends Framework\TestCase
             $maximumDepth,
         );
 
-        $expected = Node\ArrayNode::create(Node\BooleanNode::fromBool(false));
+        $expected = Parser\Node\ArrayNode::create(Parser\Node\BooleanNode::fromBool(false));
 
         self::assertEquals($expected, $node);
     }
 
     public function testParseParsesFloatWithDecimalPointAndMultipleTrailingDigits(): void
     {
-        $raw = Raw::fromString('3.14159');
-        $maximumDepth = MaximumDepth::default();
+        $raw = Parser\Raw::fromString('3.14159');
+        $maximumDepth = Parser\MaximumDepth::default();
 
         $parser = new Parser\Parser();
 
@@ -2695,15 +2688,15 @@ final class ParserTest extends Framework\TestCase
             $maximumDepth,
         );
 
-        $expected = Node\NumberNode::fromRaw(Raw::fromString('3.14159'));
+        $expected = Parser\Node\NumberNode::fromRaw(Parser\Raw::fromString('3.14159'));
 
         self::assertEquals($expected, $node);
     }
 
     public function testParseParsesNumberExponentWithMinusSign(): void
     {
-        $raw = Raw::fromString('5e-1');
-        $maximumDepth = MaximumDepth::default();
+        $raw = Parser\Raw::fromString('5e-1');
+        $maximumDepth = Parser\MaximumDepth::default();
 
         $parser = new Parser\Parser();
 
@@ -2712,15 +2705,15 @@ final class ParserTest extends Framework\TestCase
             $maximumDepth,
         );
 
-        $expected = Node\NumberNode::fromRaw(Raw::fromString('5e-1'));
+        $expected = Parser\Node\NumberNode::fromRaw(Parser\Raw::fromString('5e-1'));
 
         self::assertEquals($expected, $node);
     }
 
     public function testParseThrowsForObjectWithTrailingComma(): void
     {
-        $raw = Raw::fromString('{"a":1,}');
-        $maximumDepth = MaximumDepth::default();
+        $raw = Parser\Raw::fromString('{"a":1,}');
+        $maximumDepth = Parser\MaximumDepth::default();
 
         $parser = new Parser\Parser();
 
@@ -2729,8 +2722,8 @@ final class ParserTest extends Framework\TestCase
                 $raw,
                 $maximumDepth,
             );
-        } catch (InvalidJson $exception) {
-            self::assertSame(7, $exception->position()->offset()->toInt());
+        } catch (Parser\InvalidJson $invalidJson) {
+            self::assertSame(7, $invalidJson->position()->offset()->toInt());
 
             return;
         }
@@ -2740,8 +2733,8 @@ final class ParserTest extends Framework\TestCase
 
     public function testParseThrowsForArrayWithTrailingComma(): void
     {
-        $raw = Raw::fromString('[1,]');
-        $maximumDepth = MaximumDepth::default();
+        $raw = Parser\Raw::fromString('[1,]');
+        $maximumDepth = Parser\MaximumDepth::default();
 
         $parser = new Parser\Parser();
 
@@ -2750,8 +2743,8 @@ final class ParserTest extends Framework\TestCase
                 $raw,
                 $maximumDepth,
             );
-        } catch (InvalidJson $exception) {
-            self::assertSame(3, $exception->position()->offset()->toInt());
+        } catch (Parser\InvalidJson $invalidJson) {
+            self::assertSame(3, $invalidJson->position()->offset()->toInt());
 
             return;
         }
@@ -2761,8 +2754,8 @@ final class ParserTest extends Framework\TestCase
 
     public function testParseThrowsWithCorrectMessageForInvalidEscapeSequence(): void
     {
-        $raw = Raw::fromString('"\\x"');
-        $maximumDepth = MaximumDepth::default();
+        $raw = Parser\Raw::fromString('"\\x"');
+        $maximumDepth = Parser\MaximumDepth::default();
 
         $parser = new Parser\Parser();
 
@@ -2771,8 +2764,8 @@ final class ParserTest extends Framework\TestCase
                 $raw,
                 $maximumDepth,
             );
-        } catch (InvalidJson $exception) {
-            self::assertStringContainsString('column 3', $exception->getMessage());
+        } catch (Parser\InvalidJson $invalidJson) {
+            self::assertStringContainsString('column 3', $invalidJson->getMessage());
 
             return;
         }
@@ -2782,12 +2775,12 @@ final class ParserTest extends Framework\TestCase
 
     public function testParseThrowsForLowSurrogateJustBelowRange(): void
     {
-        $raw = Raw::fromString('"\\uD800\\uDBFF"');
-        $maximumDepth = MaximumDepth::default();
+        $raw = Parser\Raw::fromString('"\\uD800\\uDBFF"');
+        $maximumDepth = Parser\MaximumDepth::default();
 
         $parser = new Parser\Parser();
 
-        $this->expectException(InvalidJson::class);
+        $this->expectException(Parser\InvalidJson::class);
 
         $parser->parse(
             $raw,
@@ -2797,12 +2790,12 @@ final class ParserTest extends Framework\TestCase
 
     public function testParseThrowsForUnexpectedLowSurrogateAtExactStart(): void
     {
-        $raw = Raw::fromString('"\\uDC00"');
-        $maximumDepth = MaximumDepth::default();
+        $raw = Parser\Raw::fromString('"\\uDC00"');
+        $maximumDepth = Parser\MaximumDepth::default();
 
         $parser = new Parser\Parser();
 
-        $this->expectException(InvalidJson::class);
+        $this->expectException(Parser\InvalidJson::class);
 
         $parser->parse(
             $raw,
@@ -2812,12 +2805,12 @@ final class ParserTest extends Framework\TestCase
 
     public function testParseThrowsForUnexpectedLowSurrogateAtExactEnd(): void
     {
-        $raw = Raw::fromString('"\\uDFFF"');
-        $maximumDepth = MaximumDepth::default();
+        $raw = Parser\Raw::fromString('"\\uDFFF"');
+        $maximumDepth = Parser\MaximumDepth::default();
 
         $parser = new Parser\Parser();
 
-        $this->expectException(InvalidJson::class);
+        $this->expectException(Parser\InvalidJson::class);
 
         $parser->parse(
             $raw,
@@ -2827,8 +2820,8 @@ final class ParserTest extends Framework\TestCase
 
     public function testParseThrowsWithCorrectPositionForInvalidLowSurrogate(): void
     {
-        $raw = Raw::fromString('"\\uD800\\u0041"');
-        $maximumDepth = MaximumDepth::default();
+        $raw = Parser\Raw::fromString('"\\uD800\\u0041"');
+        $maximumDepth = Parser\MaximumDepth::default();
 
         $parser = new Parser\Parser();
 
@@ -2837,9 +2830,9 @@ final class ParserTest extends Framework\TestCase
                 $raw,
                 $maximumDepth,
             );
-        } catch (InvalidJson $exception) {
-            self::assertSame(9, $exception->position()->offset()->toInt());
-            self::assertStringContainsString('column 10', $exception->getMessage());
+        } catch (Parser\InvalidJson $invalidJson) {
+            self::assertSame(9, $invalidJson->position()->offset()->toInt());
+            self::assertStringContainsString('column 10', $invalidJson->getMessage());
 
             return;
         }
@@ -2849,8 +2842,8 @@ final class ParserTest extends Framework\TestCase
 
     public function testParseThrowsWithCorrectPositionForUnexpectedLowSurrogate(): void
     {
-        $raw = Raw::fromString('"\\uDC00"');
-        $maximumDepth = MaximumDepth::default();
+        $raw = Parser\Raw::fromString('"\\uDC00"');
+        $maximumDepth = Parser\MaximumDepth::default();
 
         $parser = new Parser\Parser();
 
@@ -2859,9 +2852,9 @@ final class ParserTest extends Framework\TestCase
                 $raw,
                 $maximumDepth,
             );
-        } catch (InvalidJson $exception) {
-            self::assertSame(3, $exception->position()->offset()->toInt());
-            self::assertStringContainsString('column 4', $exception->getMessage());
+        } catch (Parser\InvalidJson $invalidJson) {
+            self::assertSame(3, $invalidJson->position()->offset()->toInt());
+            self::assertStringContainsString('column 4', $invalidJson->getMessage());
 
             return;
         }
@@ -2871,12 +2864,12 @@ final class ParserTest extends Framework\TestCase
 
     public function testParseThrowsForHexQuadWithPartialMatchWithoutAnchors(): void
     {
-        $raw = Raw::fromString('"\\u00G0"');
-        $maximumDepth = MaximumDepth::default();
+        $raw = Parser\Raw::fromString('"\\u00G0"');
+        $maximumDepth = Parser\MaximumDepth::default();
 
         $parser = new Parser\Parser();
 
-        $this->expectException(InvalidJson::class);
+        $this->expectException(Parser\InvalidJson::class);
 
         $parser->parse(
             $raw,
@@ -2886,8 +2879,8 @@ final class ParserTest extends Framework\TestCase
 
     public function testParseParsesZeroInObject(): void
     {
-        $raw = Raw::fromString('{"a":0}');
-        $maximumDepth = MaximumDepth::default();
+        $raw = Parser\Raw::fromString('{"a":0}');
+        $maximumDepth = Parser\MaximumDepth::default();
 
         $parser = new Parser\Parser();
 
@@ -2896,9 +2889,9 @@ final class ParserTest extends Framework\TestCase
             $maximumDepth,
         );
 
-        $expected = Node\ObjectNode::create(Node\ObjectProperty::create(
-            Node\StringNode::fromRaw(Raw::fromString('"a"')),
-            Node\NumberNode::fromRaw(Raw::fromString('0')),
+        $expected = Parser\Node\ObjectNode::create(Parser\Node\ObjectProperty::create(
+            Parser\Node\StringNode::fromRaw(Parser\Raw::fromString('"a"')),
+            Parser\Node\NumberNode::fromRaw(Parser\Raw::fromString('0')),
         ));
 
         self::assertEquals($expected, $node);
@@ -2906,8 +2899,8 @@ final class ParserTest extends Framework\TestCase
 
     public function testParseHandlesNumberFollowedByClosingBrace(): void
     {
-        $raw = Raw::fromString('{"x":42}');
-        $maximumDepth = MaximumDepth::default();
+        $raw = Parser\Raw::fromString('{"x":42}');
+        $maximumDepth = Parser\MaximumDepth::default();
 
         $parser = new Parser\Parser();
 
@@ -2916,9 +2909,9 @@ final class ParserTest extends Framework\TestCase
             $maximumDepth,
         );
 
-        $expected = Node\ObjectNode::create(Node\ObjectProperty::create(
-            Node\StringNode::fromRaw(Raw::fromString('"x"')),
-            Node\NumberNode::fromRaw(Raw::fromString('42')),
+        $expected = Parser\Node\ObjectNode::create(Parser\Node\ObjectProperty::create(
+            Parser\Node\StringNode::fromRaw(Parser\Raw::fromString('"x"')),
+            Parser\Node\NumberNode::fromRaw(Parser\Raw::fromString('42')),
         ));
 
         self::assertEquals($expected, $node);
@@ -2926,8 +2919,8 @@ final class ParserTest extends Framework\TestCase
 
     public function testParseThrowsForNumberMinusOnly(): void
     {
-        $raw = Raw::fromString('[-]');
-        $maximumDepth = MaximumDepth::default();
+        $raw = Parser\Raw::fromString('[-]');
+        $maximumDepth = Parser\MaximumDepth::default();
 
         $parser = new Parser\Parser();
 
@@ -2936,8 +2929,8 @@ final class ParserTest extends Framework\TestCase
                 $raw,
                 $maximumDepth,
             );
-        } catch (InvalidJson $exception) {
-            self::assertSame(2, $exception->position()->offset()->toInt());
+        } catch (Parser\InvalidJson $invalidJson) {
+            self::assertSame(2, $invalidJson->position()->offset()->toInt());
 
             return;
         }
@@ -2947,8 +2940,8 @@ final class ParserTest extends Framework\TestCase
 
     public function testParseParsesFloatZeroWithDecimal(): void
     {
-        $raw = Raw::fromString('0.0');
-        $maximumDepth = MaximumDepth::default();
+        $raw = Parser\Raw::fromString('0.0');
+        $maximumDepth = Parser\MaximumDepth::default();
 
         $parser = new Parser\Parser();
 
@@ -2957,15 +2950,15 @@ final class ParserTest extends Framework\TestCase
             $maximumDepth,
         );
 
-        $expected = Node\NumberNode::fromRaw(Raw::fromString('0.0'));
+        $expected = Parser\Node\NumberNode::fromRaw(Parser\Raw::fromString('0.0'));
 
         self::assertEquals($expected, $node);
     }
 
     public function testParseParsesFloatWithExponentWithoutSign(): void
     {
-        $raw = Raw::fromString('3e2');
-        $maximumDepth = MaximumDepth::default();
+        $raw = Parser\Raw::fromString('3e2');
+        $maximumDepth = Parser\MaximumDepth::default();
 
         $parser = new Parser\Parser();
 
@@ -2974,15 +2967,15 @@ final class ParserTest extends Framework\TestCase
             $maximumDepth,
         );
 
-        $expected = Node\NumberNode::fromRaw(Raw::fromString('3e2'));
+        $expected = Parser\Node\NumberNode::fromRaw(Parser\Raw::fromString('3e2'));
 
         self::assertEquals($expected, $node);
     }
 
     public function testParseThrowsInvalidJsonWithUnexpectedCharacterMessageForInvalidStart(): void
     {
-        $raw = Raw::fromString('&');
-        $maximumDepth = MaximumDepth::default();
+        $raw = Parser\Raw::fromString('&');
+        $maximumDepth = Parser\MaximumDepth::default();
 
         $parser = new Parser\Parser();
 
@@ -2991,9 +2984,9 @@ final class ParserTest extends Framework\TestCase
                 $raw,
                 $maximumDepth,
             );
-        } catch (InvalidJson $exception) {
-            self::assertStringContainsString('Unexpected character', $exception->getMessage());
-            self::assertSame(0, $exception->position()->offset()->toInt());
+        } catch (Parser\InvalidJson $invalidJson) {
+            self::assertStringContainsString('Unexpected character', $invalidJson->getMessage());
+            self::assertSame(0, $invalidJson->position()->offset()->toInt());
 
             return;
         }
@@ -3008,12 +3001,12 @@ final class ParserTest extends Framework\TestCase
         string $json,
         string $message
     ): void {
-        $raw = Raw::fromString($json);
-        $maximumDepth = MaximumDepth::default();
+        $raw = Parser\Raw::fromString($json);
+        $maximumDepth = Parser\MaximumDepth::default();
 
         $parser = new Parser\Parser();
 
-        $this->expectException(InvalidJson::class);
+        $this->expectException(Parser\InvalidJson::class);
         $this->expectExceptionMessage($message);
 
         $parser->parse(
@@ -3056,8 +3049,8 @@ final class ParserTest extends Framework\TestCase
 
     public function testParseParsesFloatWithNineInDecimalPart(): void
     {
-        $raw = Raw::fromString('1.9');
-        $maximumDepth = MaximumDepth::default();
+        $raw = Parser\Raw::fromString('1.9');
+        $maximumDepth = Parser\MaximumDepth::default();
 
         $parser = new Parser\Parser();
 
@@ -3066,15 +3059,15 @@ final class ParserTest extends Framework\TestCase
             $maximumDepth,
         );
 
-        $expected = Node\NumberNode::fromRaw(Raw::fromString('1.9'));
+        $expected = Parser\Node\NumberNode::fromRaw(Parser\Raw::fromString('1.9'));
 
         self::assertEquals($expected, $node);
     }
 
     public function testParseParsesFloatWithNineInExponent(): void
     {
-        $raw = Raw::fromString('1e9');
-        $maximumDepth = MaximumDepth::default();
+        $raw = Parser\Raw::fromString('1e9');
+        $maximumDepth = Parser\MaximumDepth::default();
 
         $parser = new Parser\Parser();
 
@@ -3083,15 +3076,15 @@ final class ParserTest extends Framework\TestCase
             $maximumDepth,
         );
 
-        $expected = Node\NumberNode::fromRaw(Raw::fromString('1e9'));
+        $expected = Parser\Node\NumberNode::fromRaw(Parser\Raw::fromString('1e9'));
 
         self::assertEquals($expected, $node);
     }
 
     public function testParseParsesFloatWithZeroInExponent(): void
     {
-        $raw = Raw::fromString('1e0');
-        $maximumDepth = MaximumDepth::default();
+        $raw = Parser\Raw::fromString('1e0');
+        $maximumDepth = Parser\MaximumDepth::default();
 
         $parser = new Parser\Parser();
 
@@ -3100,15 +3093,15 @@ final class ParserTest extends Framework\TestCase
             $maximumDepth,
         );
 
-        $expected = Node\NumberNode::fromRaw(Raw::fromString('1e0'));
+        $expected = Parser\Node\NumberNode::fromRaw(Parser\Raw::fromString('1e0'));
 
         self::assertEquals($expected, $node);
     }
 
     public function testParseParsesFloatWithNineAfterDecimalPoint(): void
     {
-        $raw = Raw::fromString('0.9');
-        $maximumDepth = MaximumDepth::default();
+        $raw = Parser\Raw::fromString('0.9');
+        $maximumDepth = Parser\MaximumDepth::default();
 
         $parser = new Parser\Parser();
 
@@ -3117,15 +3110,15 @@ final class ParserTest extends Framework\TestCase
             $maximumDepth,
         );
 
-        $expected = Node\NumberNode::fromRaw(Raw::fromString('0.9'));
+        $expected = Parser\Node\NumberNode::fromRaw(Parser\Raw::fromString('0.9'));
 
         self::assertEquals($expected, $node);
     }
 
     public function testParseThrowsForHighSurrogateAtExactEndOfHexQuad(): void
     {
-        $raw = Raw::fromString('"\\uD800');
-        $maximumDepth = MaximumDepth::default();
+        $raw = Parser\Raw::fromString('"\\uD800');
+        $maximumDepth = Parser\MaximumDepth::default();
 
         $parser = new Parser\Parser();
 
@@ -3134,8 +3127,8 @@ final class ParserTest extends Framework\TestCase
                 $raw,
                 $maximumDepth,
             );
-        } catch (InvalidJson $exception) {
-            self::assertStringContainsString('surrogate', $exception->getMessage());
+        } catch (Parser\InvalidJson $invalidJson) {
+            self::assertStringContainsString('surrogate', $invalidJson->getMessage());
 
             return;
         }
@@ -3145,8 +3138,8 @@ final class ParserTest extends Framework\TestCase
 
     public function testParseThrowsForTruncatedHexQuadExactlyOneShort(): void
     {
-        $raw = Raw::fromString('"\\u123');
-        $maximumDepth = MaximumDepth::default();
+        $raw = Parser\Raw::fromString('"\\u123');
+        $maximumDepth = Parser\MaximumDepth::default();
 
         $parser = new Parser\Parser();
 
@@ -3155,8 +3148,8 @@ final class ParserTest extends Framework\TestCase
                 $raw,
                 $maximumDepth,
             );
-        } catch (InvalidJson $exception) {
-            self::assertSame('Expected 4 hex digits at line 1, column 4.', $exception->getMessage());
+        } catch (Parser\InvalidJson $invalidJson) {
+            self::assertSame('Expected 4 hex digits at line 1, column 4.', $invalidJson->getMessage());
 
             return;
         }
@@ -3166,8 +3159,8 @@ final class ParserTest extends Framework\TestCase
 
     public function testParseThrowsForHexQuadExactlyAtEndOfInput(): void
     {
-        $raw = Raw::fromString('"\\u004');
-        $maximumDepth = MaximumDepth::default();
+        $raw = Parser\Raw::fromString('"\\u004');
+        $maximumDepth = Parser\MaximumDepth::default();
 
         $parser = new Parser\Parser();
 
@@ -3176,8 +3169,8 @@ final class ParserTest extends Framework\TestCase
                 $raw,
                 $maximumDepth,
             );
-        } catch (InvalidJson $exception) {
-            self::assertStringContainsString('hex digits', $exception->getMessage());
+        } catch (Parser\InvalidJson $invalidJson) {
+            self::assertStringContainsString('hex digits', $invalidJson->getMessage());
 
             return;
         }
@@ -3187,8 +3180,8 @@ final class ParserTest extends Framework\TestCase
 
     public function testParseParsesFloatWithMultipleNinesInExponent(): void
     {
-        $raw = Raw::fromString('1e99');
-        $maximumDepth = MaximumDepth::default();
+        $raw = Parser\Raw::fromString('1e99');
+        $maximumDepth = Parser\MaximumDepth::default();
 
         $parser = new Parser\Parser();
 
@@ -3197,15 +3190,15 @@ final class ParserTest extends Framework\TestCase
             $maximumDepth,
         );
 
-        $expected = Node\NumberNode::fromRaw(Raw::fromString('1e99'));
+        $expected = Parser\Node\NumberNode::fromRaw(Parser\Raw::fromString('1e99'));
 
         self::assertEquals($expected, $node);
     }
 
     public function testParseThrowsForObjectWithOnlyOpenBraceAndWhitespace(): void
     {
-        $raw = Raw::fromString('{ ');
-        $maximumDepth = MaximumDepth::default();
+        $raw = Parser\Raw::fromString('{ ');
+        $maximumDepth = Parser\MaximumDepth::default();
 
         $parser = new Parser\Parser();
 
@@ -3214,8 +3207,8 @@ final class ParserTest extends Framework\TestCase
                 $raw,
                 $maximumDepth,
             );
-        } catch (InvalidJson $exception) {
-            self::assertSame(2, $exception->position()->offset()->toInt());
+        } catch (Parser\InvalidJson $invalidJson) {
+            self::assertSame(2, $invalidJson->position()->offset()->toInt());
 
             return;
         }
@@ -3225,8 +3218,8 @@ final class ParserTest extends Framework\TestCase
 
     public function testParseThrowsForArrayWithOnlyOpenBracketAndWhitespace(): void
     {
-        $raw = Raw::fromString('[ ');
-        $maximumDepth = MaximumDepth::default();
+        $raw = Parser\Raw::fromString('[ ');
+        $maximumDepth = Parser\MaximumDepth::default();
 
         $parser = new Parser\Parser();
 
@@ -3235,8 +3228,8 @@ final class ParserTest extends Framework\TestCase
                 $raw,
                 $maximumDepth,
             );
-        } catch (InvalidJson $exception) {
-            self::assertSame(2, $exception->position()->offset()->toInt());
+        } catch (Parser\InvalidJson $invalidJson) {
+            self::assertSame(2, $invalidJson->position()->offset()->toInt());
 
             return;
         }

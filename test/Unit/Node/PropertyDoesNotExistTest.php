@@ -13,9 +13,7 @@ declare(strict_types=1);
 
 namespace Ergebnis\Json\Parser\Test\Unit\Node;
 
-use Ergebnis\Json\Parser\Index;
-use Ergebnis\Json\Parser\Node;
-use Ergebnis\Json\Parser\Test;
+use Ergebnis\Json\Parser;
 use PHPUnit\Framework;
 
 /**
@@ -25,13 +23,13 @@ use PHPUnit\Framework;
  */
 final class PropertyDoesNotExistTest extends Framework\TestCase
 {
-    use Test\Util\Helper;
+    use Parser\Test\Util\Helper;
 
     public function testAtReturnsPropertyDoesNotExist(): void
     {
-        $index = Index::fromInt(self::faker()->numberBetween(0, 100));
+        $index = Parser\Index::fromInt(self::faker()->numberBetween(0, 100));
 
-        $exception = Node\PropertyDoesNotExist::at($index);
+        $exception = Parser\Node\PropertyDoesNotExist::at($index);
 
         $message = \sprintf(
             'Property at index %d does not exist.',

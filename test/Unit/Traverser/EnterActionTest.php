@@ -13,8 +13,7 @@ declare(strict_types=1);
 
 namespace Ergebnis\Json\Parser\Test\Unit\Traverser;
 
-use Ergebnis\Json\Parser\Node;
-use Ergebnis\Json\Parser\Traverser;
+use Ergebnis\Json\Parser;
 use PHPUnit\Framework;
 
 /**
@@ -26,29 +25,29 @@ final class EnterActionTest extends Framework\TestCase
 {
     public function testKeepReturnsEnterAction(): void
     {
-        $action = Traverser\EnterAction::keep();
+        $action = Parser\Traverser\EnterAction::keep();
 
         self::assertFalse($action->isRemove());
         self::assertFalse($action->isSkipChildren());
         self::assertNull($action->replacement());
-        self::assertSame($action, Traverser\EnterAction::keep());
+        self::assertSame($action, Parser\Traverser\EnterAction::keep());
     }
 
     public function testRemoveReturnsEnterAction(): void
     {
-        $action = Traverser\EnterAction::remove();
+        $action = Parser\Traverser\EnterAction::remove();
 
         self::assertTrue($action->isRemove());
         self::assertFalse($action->isSkipChildren());
         self::assertNull($action->replacement());
-        self::assertSame($action, Traverser\EnterAction::remove());
+        self::assertSame($action, Parser\Traverser\EnterAction::remove());
     }
 
     public function testReplaceReturnsEnterAction(): void
     {
-        $node = Node\NullNode::create();
+        $node = Parser\Node\NullNode::create();
 
-        $action = Traverser\EnterAction::replace($node);
+        $action = Parser\Traverser\EnterAction::replace($node);
 
         self::assertFalse($action->isRemove());
         self::assertFalse($action->isSkipChildren());
@@ -57,11 +56,11 @@ final class EnterActionTest extends Framework\TestCase
 
     public function testSkipChildrenReturnsEnterAction(): void
     {
-        $action = Traverser\EnterAction::skipChildren();
+        $action = Parser\Traverser\EnterAction::skipChildren();
 
         self::assertFalse($action->isRemove());
         self::assertTrue($action->isSkipChildren());
         self::assertNull($action->replacement());
-        self::assertSame($action, Traverser\EnterAction::skipChildren());
+        self::assertSame($action, Parser\Traverser\EnterAction::skipChildren());
     }
 }

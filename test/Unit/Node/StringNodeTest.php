@@ -13,13 +13,7 @@ declare(strict_types=1);
 
 namespace Ergebnis\Json\Parser\Test\Unit\Node;
 
-use Ergebnis\Json\Parser\InvalidJson;
-use Ergebnis\Json\Parser\InvalidString;
-use Ergebnis\Json\Parser\MaximumDepth;
-use Ergebnis\Json\Parser\Node;
-use Ergebnis\Json\Parser\Parser;
-use Ergebnis\Json\Parser\Raw;
-use Ergebnis\Json\Parser\Test;
+use Ergebnis\Json\Parser;
 use PHPUnit\Framework;
 use Symfony\Component\Finder;
 
@@ -35,18 +29,18 @@ use Symfony\Component\Finder;
  */
 final class StringNodeTest extends Framework\TestCase
 {
-    use Test\Util\Helper;
+    use Parser\Test\Util\Helper;
 
     /**
      * @dataProvider provideInvalidRaw
      */
     public function testFromRawThrowsInvalidStringWhenRawIsInvalid(string $value): void
     {
-        $raw = Raw::fromString($value);
+        $raw = Parser\Raw::fromString($value);
 
-        $this->expectException(InvalidString::class);
+        $this->expectException(Parser\InvalidString::class);
 
-        Node\StringNode::fromRaw($raw);
+        Parser\Node\StringNode::fromRaw($raw);
     }
 
     /**
@@ -91,11 +85,11 @@ final class StringNodeTest extends Framework\TestCase
      */
     public function testFromRawThrowsInvalidStringWhenParserDoesNotAcceptRaw(string $value): void
     {
-        $raw = Raw::fromString($value);
+        $raw = Parser\Raw::fromString($value);
 
-        $this->expectException(InvalidString::class);
+        $this->expectException(Parser\InvalidString::class);
 
-        Node\StringNode::fromRaw($raw);
+        Parser\Node\StringNode::fromRaw($raw);
     }
 
     /**
@@ -117,9 +111,9 @@ final class StringNodeTest extends Framework\TestCase
      */
     public function testFromRawReturnsStringNodeWhenRawIsValid(string $value): void
     {
-        $raw = Raw::fromString($value);
+        $raw = Parser\Raw::fromString($value);
 
-        $node = Node\StringNode::fromRaw($raw);
+        $node = Parser\Node\StringNode::fromRaw($raw);
 
         self::assertSame($value, $node->raw());
     }
@@ -156,9 +150,9 @@ final class StringNodeTest extends Framework\TestCase
      */
     public function testFromRawReturnsStringNodeWhenParserAcceptsRaw(string $value): void
     {
-        $raw = Raw::fromString($value);
+        $raw = Parser\Raw::fromString($value);
 
-        $node = Node\StringNode::fromRaw($raw);
+        $node = Parser\Node\StringNode::fromRaw($raw);
 
         self::assertSame($value, $node->raw());
     }
@@ -181,7 +175,7 @@ final class StringNodeTest extends Framework\TestCase
     {
         $raw = '"' . self::faker()->sentence() . '"';
 
-        $node = Node\StringNode::fromParsedRaw($raw);
+        $node = Parser\Node\StringNode::fromParsedRaw($raw);
 
         self::assertSame($raw, $node->raw());
     }
@@ -191,9 +185,9 @@ final class StringNodeTest extends Framework\TestCase
      */
     public function testFromStringThrowsInvalidStringWhenValueIsNotValidUtf8(string $value): void
     {
-        $this->expectException(InvalidString::class);
+        $this->expectException(Parser\InvalidString::class);
 
-        Node\StringNode::fromString($value);
+        Parser\Node\StringNode::fromString($value);
     }
 
     /**
@@ -220,7 +214,7 @@ final class StringNodeTest extends Framework\TestCase
      */
     public function testFromStringReturnsStringNodeWhenValueIsValidUtf8(string $value): void
     {
-        $node = Node\StringNode::fromString($value);
+        $node = Parser\Node\StringNode::fromString($value);
 
         $expected = \json_encode(
             $value,
@@ -229,7 +223,7 @@ final class StringNodeTest extends Framework\TestCase
 
         self::assertSame($expected, $node->raw());
         self::assertSame($value, $node->toString());
-        self::assertEquals($node, Node\StringNode::fromRaw(Raw::fromString($node->raw())));
+        self::assertEquals($node, Parser\Node\StringNode::fromRaw(Parser\Raw::fromString($node->raw())));
     }
 
     /**
@@ -272,7 +266,7 @@ final class StringNodeTest extends Framework\TestCase
         string $raw,
         string $value
     ): void {
-        $node = Node\StringNode::fromRaw(Raw::fromString($raw));
+        $node = Parser\Node\StringNode::fromRaw(Parser\Raw::fromString($raw));
 
         self::assertSame($value, $node->toString());
     }
@@ -393,14 +387,14 @@ final class StringNodeTest extends Framework\TestCase
 
     private static function parserAccepts(string $value): bool
     {
-        $parser = new Parser();
+        $parser = new Parser\Parser();
 
         try {
             $parser->parse(
-                Raw::fromString($value),
-                MaximumDepth::default(),
+                Parser\Raw::fromString($value),
+                Parser\MaximumDepth::default(),
             );
-        } catch (InvalidJson $exception) {
+        } catch (Parser\InvalidJson $invalidJson) {
             return false;
         }
 

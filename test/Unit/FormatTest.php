@@ -13,15 +13,7 @@ declare(strict_types=1);
 
 namespace Ergebnis\Json\Parser\Test\Unit;
 
-use Ergebnis\Json\Parser\FinalNewLine;
-use Ergebnis\Json\Parser\Format;
-use Ergebnis\Json\Parser\Indent;
-use Ergebnis\Json\Parser\IndentSize;
-use Ergebnis\Json\Parser\IndentStyle;
-use Ergebnis\Json\Parser\InvalidFormat;
-use Ergebnis\Json\Parser\NewLine;
-use Ergebnis\Json\Parser\Raw;
-use Ergebnis\Json\Parser\Test;
+use Ergebnis\Json\Parser;
 use PHPUnit\Framework;
 
 /**
@@ -37,27 +29,27 @@ use PHPUnit\Framework;
  */
 final class FormatTest extends Framework\TestCase
 {
-    use Test\Util\Helper;
+    use Parser\Test\Util\Helper;
 
     public function testCompactReturnsFormat(): void
     {
-        $format = Format::compact();
+        $format = Parser\Format::compact();
 
-        self::assertEquals(Indent::none(), $format->indent());
-        self::assertEquals(NewLine::none(), $format->newLine());
-        self::assertEquals(FinalNewLine::none(), $format->finalNewLine());
+        self::assertEquals(Parser\Indent::none(), $format->indent());
+        self::assertEquals(Parser\NewLine::none(), $format->newLine());
+        self::assertEquals(Parser\FinalNewLine::none(), $format->finalNewLine());
     }
 
     public function testCreateThrowsInvalidFormatWhenFinalNewLineIsPresentAndNewLineIsEmpty(): void
     {
-        $indent = Indent::none();
-        $newLine = NewLine::none();
-        $finalNewLine = FinalNewLine::present();
+        $indent = Parser\Indent::none();
+        $newLine = Parser\NewLine::none();
+        $finalNewLine = Parser\FinalNewLine::present();
 
-        $this->expectException(InvalidFormat::class);
+        $this->expectException(Parser\InvalidFormat::class);
         $this->expectExceptionMessage('A final new line requires a new line.');
 
-        Format::create(
+        Parser\Format::create(
             $indent,
             $newLine,
             $finalNewLine,
@@ -66,17 +58,17 @@ final class FormatTest extends Framework\TestCase
 
     public function testCreateThrowsInvalidFormatWhenIndentIsNotEmptyAndNewLineIsEmpty(): void
     {
-        $indent = Indent::create(
-            IndentSize::fromInt(self::faker()->numberBetween(1, 8)),
-            IndentStyle::space(),
+        $indent = Parser\Indent::create(
+            Parser\IndentSize::fromInt(self::faker()->numberBetween(1, 8)),
+            Parser\IndentStyle::space(),
         );
-        $newLine = NewLine::none();
-        $finalNewLine = FinalNewLine::none();
+        $newLine = Parser\NewLine::none();
+        $finalNewLine = Parser\FinalNewLine::none();
 
-        $this->expectException(InvalidFormat::class);
+        $this->expectException(Parser\InvalidFormat::class);
         $this->expectExceptionMessage('An indent requires a new line.');
 
-        Format::create(
+        Parser\Format::create(
             $indent,
             $newLine,
             $finalNewLine,
@@ -87,11 +79,11 @@ final class FormatTest extends Framework\TestCase
      * @dataProvider provideIndentNewLineAndFinalNewLineWhereIndentAndFinalNewLineAreEmptyOrNewLineIsNotEmpty
      */
     public function testCreateReturnsFormatWhenIndentAndFinalNewLineAreEmptyOrNewLineIsNotEmpty(
-        Indent $indent,
-        NewLine $newLine,
-        FinalNewLine $finalNewLine
+        Parser\Indent $indent,
+        Parser\NewLine $newLine,
+        Parser\FinalNewLine $finalNewLine
     ): void {
-        $format = Format::create(
+        $format = Parser\Format::create(
             $indent,
             $newLine,
             $finalNewLine,
@@ -103,36 +95,36 @@ final class FormatTest extends Framework\TestCase
     }
 
     /**
-     * @return \Generator<string, array{0: Indent, 1: NewLine, 2: FinalNewLine}>
+     * @return \Generator<string, array{0: Parser\Indent, 1: Parser\NewLine, 2: Parser\FinalNewLine}>
      */
     public static function provideIndentNewLineAndFinalNewLineWhereIndentAndFinalNewLineAreEmptyOrNewLineIsNotEmpty(): iterable
     {
         $values = [
-            'indent-none-new-line-none-and-final-new-line-none' => [
-                Indent::none(),
-                NewLine::none(),
-                FinalNewLine::none(),
-            ],
             'indent-none-new-line-lf-and-final-new-line-present' => [
-                Indent::none(),
-                NewLine::lf(),
-                FinalNewLine::present(),
+                Parser\Indent::none(),
+                Parser\NewLine::lf(),
+                Parser\FinalNewLine::present(),
+            ],
+            'indent-none-new-line-none-and-final-new-line-none' => [
+                Parser\Indent::none(),
+                Parser\NewLine::none(),
+                Parser\FinalNewLine::none(),
             ],
             'indent-spaces-new-line-lf-and-final-new-line-none' => [
-                Indent::create(
-                    IndentSize::fromInt(4),
-                    IndentStyle::space(),
+                Parser\Indent::create(
+                    Parser\IndentSize::fromInt(4),
+                    Parser\IndentStyle::space(),
                 ),
-                NewLine::lf(),
-                FinalNewLine::none(),
+                Parser\NewLine::lf(),
+                Parser\FinalNewLine::none(),
             ],
             'indent-tab-new-line-cr-lf-and-final-new-line-present' => [
-                Indent::create(
-                    IndentSize::fromInt(1),
-                    IndentStyle::tab(),
+                Parser\Indent::create(
+                    Parser\IndentSize::fromInt(1),
+                    Parser\IndentStyle::tab(),
                 ),
-                NewLine::crLf(),
-                FinalNewLine::present(),
+                Parser\NewLine::crLf(),
+                Parser\FinalNewLine::present(),
             ],
         ];
 
@@ -150,102 +142,102 @@ final class FormatTest extends Framework\TestCase
      */
     public function testFromRawReturnsFormatDetectedFromJson(
         string $json,
-        Format $expected
+        Parser\Format $expected
     ): void {
-        $raw = Raw::fromString($json);
+        $raw = Parser\Raw::fromString($json);
 
-        $format = Format::fromRaw($raw);
+        $format = Parser\Format::fromRaw($raw);
 
         self::assertEquals($expected, $format);
     }
 
     /**
-     * @return \Generator<string, array{0: string, 1: Format}>
+     * @return \Generator<string, array{0: string, 1: Parser\Format}>
      */
     public static function provideJsonAndFormat(): iterable
     {
         $values = [
-            'scalar' => [
-                '1',
-                Format::compact(),
+            'blank-and-whitespace-only-lines-before-indent' => [
+                "{\n\n   \n  \"name\": \"ergebnis/json-parser\"\n}",
+                Parser\Format::create(
+                    Parser\Indent::create(
+                        Parser\IndentSize::fromInt(2),
+                        Parser\IndentStyle::space(),
+                    ),
+                    Parser\NewLine::lf(),
+                    Parser\FinalNewLine::none(),
+                ),
             ],
             'compact' => [
                 '{"name":"ergebnis/json-parser"}',
-                Format::compact(),
+                Parser\Format::compact(),
             ],
-            'spaces-without-new-line' => [
-                '{"name": "ergebnis/json-parser", "keywords": ["json"]}',
-                Format::compact(),
+            'crlf-tab-final-new-line' => [
+                "{\r\n\t\"name\": \"ergebnis/json-parser\"\r\n}\r\n",
+                Parser\Format::create(
+                    Parser\Indent::create(
+                        Parser\IndentSize::fromInt(1),
+                        Parser\IndentStyle::tab(),
+                    ),
+                    Parser\NewLine::crLf(),
+                    Parser\FinalNewLine::present(),
+                ),
             ],
             'final-new-line-only' => [
                 "{\"name\":\"ergebnis/json-parser\"}\n",
-                Format::create(
-                    Indent::none(),
-                    NewLine::lf(),
-                    FinalNewLine::present(),
-                ),
-            ],
-            'new-line-without-indent' => [
-                "{\n\"name\": \"ergebnis/json-parser\"\n}",
-                Format::create(
-                    Indent::none(),
-                    NewLine::lf(),
-                    FinalNewLine::none(),
+                Parser\Format::create(
+                    Parser\Indent::none(),
+                    Parser\NewLine::lf(),
+                    Parser\FinalNewLine::present(),
                 ),
             ],
             'lf-four-spaces-final-new-line' => [
                 "{\n    \"name\": \"ergebnis/json-parser\",\n    \"keywords\": [\n        \"json\"\n    ]\n}\n",
-                Format::create(
-                    Indent::create(
-                        IndentSize::fromInt(4),
-                        IndentStyle::space(),
+                Parser\Format::create(
+                    Parser\Indent::create(
+                        Parser\IndentSize::fromInt(4),
+                        Parser\IndentStyle::space(),
                     ),
-                    NewLine::lf(),
-                    FinalNewLine::present(),
+                    Parser\NewLine::lf(),
+                    Parser\FinalNewLine::present(),
                 ),
             ],
             'lf-two-spaces' => [
                 "{\n  \"name\": \"ergebnis/json-parser\"\n}",
-                Format::create(
-                    Indent::create(
-                        IndentSize::fromInt(2),
-                        IndentStyle::space(),
+                Parser\Format::create(
+                    Parser\Indent::create(
+                        Parser\IndentSize::fromInt(2),
+                        Parser\IndentStyle::space(),
                     ),
-                    NewLine::lf(),
-                    FinalNewLine::none(),
+                    Parser\NewLine::lf(),
+                    Parser\FinalNewLine::none(),
                 ),
             ],
-            'crlf-tab-final-new-line' => [
-                "{\r\n\t\"name\": \"ergebnis/json-parser\"\r\n}\r\n",
-                Format::create(
-                    Indent::create(
-                        IndentSize::fromInt(1),
-                        IndentStyle::tab(),
-                    ),
-                    NewLine::crLf(),
-                    FinalNewLine::present(),
+            'new-line-without-indent' => [
+                "{\n\"name\": \"ergebnis/json-parser\"\n}",
+                Parser\Format::create(
+                    Parser\Indent::none(),
+                    Parser\NewLine::lf(),
+                    Parser\FinalNewLine::none(),
                 ),
             ],
-            'blank-and-whitespace-only-lines-before-indent' => [
-                "{\n\n   \n  \"name\": \"ergebnis/json-parser\"\n}",
-                Format::create(
-                    Indent::create(
-                        IndentSize::fromInt(2),
-                        IndentStyle::space(),
-                    ),
-                    NewLine::lf(),
-                    FinalNewLine::none(),
-                ),
+            'scalar' => [
+                '1',
+                Parser\Format::compact(),
+            ],
+            'spaces-without-new-line' => [
+                '{"name": "ergebnis/json-parser", "keywords": ["json"]}',
+                Parser\Format::compact(),
             ],
             'tab-followed-by-spaces' => [
                 "{\n\t  \"name\": \"ergebnis/json-parser\"\n}",
-                Format::create(
-                    Indent::create(
-                        IndentSize::fromInt(1),
-                        IndentStyle::tab(),
+                Parser\Format::create(
+                    Parser\Indent::create(
+                        Parser\IndentSize::fromInt(1),
+                        Parser\IndentStyle::tab(),
                     ),
-                    NewLine::lf(),
-                    FinalNewLine::none(),
+                    Parser\NewLine::lf(),
+                    Parser\FinalNewLine::none(),
                 ),
             ],
         ];

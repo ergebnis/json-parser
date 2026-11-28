@@ -13,8 +13,7 @@ declare(strict_types=1);
 
 namespace Ergebnis\Json\Parser\Test\Unit;
 
-use Ergebnis\Json\Parser\Bytes;
-use Ergebnis\Json\Parser\Test;
+use Ergebnis\Json\Parser;
 use PHPUnit\Framework;
 
 /**
@@ -22,13 +21,13 @@ use PHPUnit\Framework;
  */
 final class BytesTest extends Framework\TestCase
 {
-    use Test\Util\Helper;
+    use Parser\Test\Util\Helper;
 
     public function testFromStringReturnsBytes(): void
     {
         $value = self::faker()->sentence();
 
-        $bytes = Bytes::fromString($value);
+        $bytes = Parser\Bytes::fromString($value);
 
         self::assertSame($value, $bytes->toString());
     }
@@ -37,7 +36,7 @@ final class BytesTest extends Framework\TestCase
     {
         $value = \implode('', \array_map('\chr', \range(0x20, 0x7E)));
 
-        $bytes = Bytes::fromString($value);
+        $bytes = Parser\Bytes::fromString($value);
 
         self::assertSame($value, $bytes->toEscapedString());
     }
@@ -47,7 +46,7 @@ final class BytesTest extends Framework\TestCase
      */
     public function testToEscapedStringReturnsHexadecimalEscapeForByteOutsidePrintableAscii(int $byte): void
     {
-        $bytes = Bytes::fromString('a' . \chr($byte) . 'b');
+        $bytes = Parser\Bytes::fromString('a' . \chr($byte) . 'b');
 
         $expected = \sprintf(
             'a\x%02Xb',

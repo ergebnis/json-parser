@@ -13,7 +13,7 @@ declare(strict_types=1);
 
 namespace Ergebnis\Json\Parser\Test\Benchmark\Node;
 
-use Ergebnis\Json\Parser\Node;
+use Ergebnis\Json\Parser;
 
 /**
  * @BeforeMethods("setUp")
@@ -23,20 +23,20 @@ final class ArrayNodeBench
     private const COUNT = 100000;
 
     /**
-     * @var list<Node\Node>
+     * @var list<Parser\Node\Node>
      */
     private array $elements = [];
 
     public function setUp(): void
     {
         for ($i = 0; self::COUNT > $i; ++$i) {
-            $this->elements[] = Node\NullNode::create();
+            $this->elements[] = Parser\Node\NullNode::create();
         }
     }
 
     public function benchAddElement(): void
     {
-        $node = Node\ArrayNode::create();
+        $node = Parser\Node\ArrayNode::create();
 
         foreach ($this->elements as $element) {
             $node->addElement($element);
@@ -45,6 +45,6 @@ final class ArrayNodeBench
 
     public function benchCreate(): void
     {
-        Node\ArrayNode::create(...$this->elements);
+        Parser\Node\ArrayNode::create(...$this->elements);
     }
 }

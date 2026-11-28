@@ -13,8 +13,7 @@ declare(strict_types=1);
 
 namespace Ergebnis\Json\Parser\Test\Unit\Node;
 
-use Ergebnis\Json\Parser\Node;
-use Ergebnis\Json\Parser\Test;
+use Ergebnis\Json\Parser;
 use PHPUnit\Framework;
 
 /**
@@ -22,12 +21,12 @@ use PHPUnit\Framework;
  */
 final class NullNodeTest extends Framework\TestCase
 {
-    use Test\Util\Helper;
+    use Parser\Test\Util\Helper;
 
     public function testCreateReturnsNullNode(): void
     {
-        $one = Node\NullNode::create();
-        $two = Node\NullNode::create();
+        $one = Parser\Node\NullNode::create();
+        $two = Parser\Node\NullNode::create();
 
         self::assertNotSame($one, $two);
     }

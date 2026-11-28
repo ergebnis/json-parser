@@ -13,9 +13,7 @@ declare(strict_types=1);
 
 namespace Ergebnis\Json\Parser\Test\Unit\Node;
 
-use Ergebnis\Json\Parser\Index;
-use Ergebnis\Json\Parser\Node;
-use Ergebnis\Json\Parser\Test;
+use Ergebnis\Json\Parser;
 use PHPUnit\Framework;
 
 /**
@@ -29,11 +27,11 @@ use PHPUnit\Framework;
  */
 final class ObjectNodeTest extends Framework\TestCase
 {
-    use Test\Util\Helper;
+    use Parser\Test\Util\Helper;
 
     public function testCreateReturnsObjectNodeWithoutProperties(): void
     {
-        $node = Node\ObjectNode::create();
+        $node = Parser\Node\ObjectNode::create();
 
         self::assertSame([], $node->properties());
     }
@@ -42,14 +40,14 @@ final class ObjectNodeTest extends Framework\TestCase
     {
         $faker = self::faker()->unique();
 
-        $properties = \array_map(static function () use ($faker): Node\ObjectProperty {
-            return Node\ObjectProperty::create(
-                Node\StringNode::fromString($faker->word()),
-                Node\StringNode::fromString($faker->sentence()),
+        $properties = \array_map(static function () use ($faker): Parser\Node\ObjectProperty {
+            return Parser\Node\ObjectProperty::create(
+                Parser\Node\StringNode::fromString($faker->word()),
+                Parser\Node\StringNode::fromString($faker->sentence()),
             );
         }, \range(0, 4));
 
-        $node = Node\ObjectNode::create(...$properties);
+        $node = Parser\Node\ObjectNode::create(...$properties);
 
         self::assertSame($properties, $node->properties());
     }
@@ -58,21 +56,21 @@ final class ObjectNodeTest extends Framework\TestCase
     {
         $faker = self::faker()->unique();
 
-        $properties = \array_map(static function () use ($faker): Node\ObjectProperty {
-            return Node\ObjectProperty::create(
-                Node\StringNode::fromString('foo'),
-                Node\StringNode::fromString($faker->sentence()),
+        $properties = \array_map(static function () use ($faker): Parser\Node\ObjectProperty {
+            return Parser\Node\ObjectProperty::create(
+                Parser\Node\StringNode::fromString('foo'),
+                Parser\Node\StringNode::fromString($faker->sentence()),
             );
         }, \range(0, 4));
 
-        $node = Node\ObjectNode::create(...$properties);
+        $node = Parser\Node\ObjectNode::create(...$properties);
 
         self::assertSame($properties, $node->properties());
     }
 
     public function testCountReturnsCountWhenObjectNodeHasNoProperties(): void
     {
-        $node = Node\ObjectNode::create();
+        $node = Parser\Node\ObjectNode::create();
 
         self::assertSame(0, $node->count());
     }
@@ -83,25 +81,25 @@ final class ObjectNodeTest extends Framework\TestCase
 
         $count = $faker->numberBetween(1, 10);
 
-        $properties = \array_map(static function () use ($faker): Node\ObjectProperty {
-            return Node\ObjectProperty::create(
-                Node\StringNode::fromString($faker->word()),
-                Node\StringNode::fromString($faker->sentence()),
+        $properties = \array_map(static function () use ($faker): Parser\Node\ObjectProperty {
+            return Parser\Node\ObjectProperty::create(
+                Parser\Node\StringNode::fromString($faker->word()),
+                Parser\Node\StringNode::fromString($faker->sentence()),
             );
         }, \range(1, $count));
 
-        $node = Node\ObjectNode::create(...$properties);
+        $node = Parser\Node\ObjectNode::create(...$properties);
 
         self::assertSame($count, $node->count());
     }
 
     public function testPropertyAtThrowsPropertyDoesNotExistWhenPropertyDoesNotExistAtIndex(): void
     {
-        $index = Index::fromInt(0);
+        $index = Parser\Index::fromInt(0);
 
-        $node = Node\ObjectNode::create();
+        $node = Parser\Node\ObjectNode::create();
 
-        $this->expectException(Node\PropertyDoesNotExist::class);
+        $this->expectException(Parser\Node\PropertyDoesNotExist::class);
 
         $node->propertyAt($index);
     }
@@ -110,13 +108,13 @@ final class ObjectNodeTest extends Framework\TestCase
     {
         $faker = self::faker();
 
-        $index = Index::fromInt(0);
-        $property = Node\ObjectProperty::create(
-            Node\StringNode::fromString($faker->word()),
-            Node\StringNode::fromString($faker->sentence()),
+        $index = Parser\Index::fromInt(0);
+        $property = Parser\Node\ObjectProperty::create(
+            Parser\Node\StringNode::fromString($faker->word()),
+            Parser\Node\StringNode::fromString($faker->sentence()),
         );
 
-        $node = Node\ObjectNode::create($property);
+        $node = Parser\Node\ObjectNode::create($property);
 
         self::assertSame($property, $node->propertyAt($index));
     }
@@ -125,17 +123,17 @@ final class ObjectNodeTest extends Framework\TestCase
     {
         $faker = self::faker();
 
-        $one = Node\ObjectProperty::create(
-            Node\StringNode::fromString($faker->word()),
-            Node\StringNode::fromString($faker->sentence()),
+        $one = Parser\Node\ObjectProperty::create(
+            Parser\Node\StringNode::fromString($faker->word()),
+            Parser\Node\StringNode::fromString($faker->sentence()),
         );
 
-        $two = Node\ObjectProperty::create(
-            Node\StringNode::fromString($faker->word()),
-            Node\StringNode::fromString($faker->sentence()),
+        $two = Parser\Node\ObjectProperty::create(
+            Parser\Node\StringNode::fromString($faker->word()),
+            Parser\Node\StringNode::fromString($faker->sentence()),
         );
 
-        $node = Node\ObjectNode::create();
+        $node = Parser\Node\ObjectNode::create();
 
         $node->addProperty($one);
         $node->addProperty($two);
@@ -152,15 +150,15 @@ final class ObjectNodeTest extends Framework\TestCase
     {
         $faker = self::faker();
 
-        $index = Index::fromInt(0);
-        $property = Node\ObjectProperty::create(
-            Node\StringNode::fromString($faker->word()),
-            Node\StringNode::fromString($faker->sentence()),
+        $index = Parser\Index::fromInt(0);
+        $property = Parser\Node\ObjectProperty::create(
+            Parser\Node\StringNode::fromString($faker->word()),
+            Parser\Node\StringNode::fromString($faker->sentence()),
         );
 
-        $node = Node\ObjectNode::create();
+        $node = Parser\Node\ObjectNode::create();
 
-        $this->expectException(Node\PropertyDoesNotExist::class);
+        $this->expectException(Parser\Node\PropertyDoesNotExist::class);
 
         $node->insertPropertyAt(
             $index,
@@ -172,28 +170,28 @@ final class ObjectNodeTest extends Framework\TestCase
     {
         $faker = self::faker();
 
-        $index = Index::fromInt(1);
-        $property = Node\ObjectProperty::create(
-            Node\StringNode::fromString($faker->word()),
-            Node\StringNode::fromString($faker->sentence()),
+        $index = Parser\Index::fromInt(1);
+        $property = Parser\Node\ObjectProperty::create(
+            Parser\Node\StringNode::fromString($faker->word()),
+            Parser\Node\StringNode::fromString($faker->sentence()),
         );
 
-        $one = Node\ObjectProperty::create(
-            Node\StringNode::fromString($faker->word()),
-            Node\StringNode::fromString($faker->sentence()),
+        $one = Parser\Node\ObjectProperty::create(
+            Parser\Node\StringNode::fromString($faker->word()),
+            Parser\Node\StringNode::fromString($faker->sentence()),
         );
 
-        $two = Node\ObjectProperty::create(
-            Node\StringNode::fromString($faker->word()),
-            Node\StringNode::fromString($faker->sentence()),
+        $two = Parser\Node\ObjectProperty::create(
+            Parser\Node\StringNode::fromString($faker->word()),
+            Parser\Node\StringNode::fromString($faker->sentence()),
         );
 
-        $three = Node\ObjectProperty::create(
-            Node\StringNode::fromString($faker->word()),
-            Node\StringNode::fromString($faker->sentence()),
+        $three = Parser\Node\ObjectProperty::create(
+            Parser\Node\StringNode::fromString($faker->word()),
+            Parser\Node\StringNode::fromString($faker->sentence()),
         );
 
-        $node = Node\ObjectNode::create(
+        $node = Parser\Node\ObjectNode::create(
             $one,
             $two,
             $three,
@@ -216,11 +214,11 @@ final class ObjectNodeTest extends Framework\TestCase
 
     public function testRemovePropertyAtThrowsPropertyDoesNotExistWhenPropertyDoesNotExistAtIndex(): void
     {
-        $index = Index::fromInt(0);
+        $index = Parser\Index::fromInt(0);
 
-        $node = Node\ObjectNode::create();
+        $node = Parser\Node\ObjectNode::create();
 
-        $this->expectException(Node\PropertyDoesNotExist::class);
+        $this->expectException(Parser\Node\PropertyDoesNotExist::class);
 
         $node->removePropertyAt($index);
     }
@@ -229,28 +227,28 @@ final class ObjectNodeTest extends Framework\TestCase
     {
         $faker = self::faker();
 
-        $one = Node\ObjectProperty::create(
-            Node\StringNode::fromString($faker->word()),
-            Node\StringNode::fromString($faker->sentence()),
+        $one = Parser\Node\ObjectProperty::create(
+            Parser\Node\StringNode::fromString($faker->word()),
+            Parser\Node\StringNode::fromString($faker->sentence()),
         );
 
-        $two = Node\ObjectProperty::create(
-            Node\StringNode::fromString($faker->word()),
-            Node\StringNode::fromString($faker->sentence()),
+        $two = Parser\Node\ObjectProperty::create(
+            Parser\Node\StringNode::fromString($faker->word()),
+            Parser\Node\StringNode::fromString($faker->sentence()),
         );
 
-        $three = Node\ObjectProperty::create(
-            Node\StringNode::fromString($faker->word()),
-            Node\StringNode::fromString($faker->sentence()),
+        $three = Parser\Node\ObjectProperty::create(
+            Parser\Node\StringNode::fromString($faker->word()),
+            Parser\Node\StringNode::fromString($faker->sentence()),
         );
 
-        $node = Node\ObjectNode::create(
+        $node = Parser\Node\ObjectNode::create(
             $one,
             $two,
             $three,
         );
 
-        $node->removePropertyAt(Index::fromInt(1));
+        $node->removePropertyAt(Parser\Index::fromInt(1));
 
         $expected = [
             $one,
@@ -259,23 +257,23 @@ final class ObjectNodeTest extends Framework\TestCase
 
         self::assertSame($expected, $node->properties());
 
-        self::assertSame($one, $node->propertyAt(Index::fromInt(0)));
-        self::assertSame($three, $node->propertyAt(Index::fromInt(1)));
+        self::assertSame($one, $node->propertyAt(Parser\Index::fromInt(0)));
+        self::assertSame($three, $node->propertyAt(Parser\Index::fromInt(1)));
     }
 
     public function testReplacePropertyAtThrowsPropertyDoesNotExistWhenPropertyDoesNotExistAtIndex(): void
     {
         $faker = self::faker();
 
-        $index = Index::fromInt(0);
-        $property = Node\ObjectProperty::create(
-            Node\StringNode::fromString($faker->word()),
-            Node\StringNode::fromString($faker->sentence()),
+        $index = Parser\Index::fromInt(0);
+        $property = Parser\Node\ObjectProperty::create(
+            Parser\Node\StringNode::fromString($faker->word()),
+            Parser\Node\StringNode::fromString($faker->sentence()),
         );
 
-        $node = Node\ObjectNode::create();
+        $node = Parser\Node\ObjectNode::create();
 
-        $this->expectException(Node\PropertyDoesNotExist::class);
+        $this->expectException(Parser\Node\PropertyDoesNotExist::class);
 
         $node->replacePropertyAt(
             $index,
@@ -287,20 +285,20 @@ final class ObjectNodeTest extends Framework\TestCase
     {
         $faker = self::faker();
 
-        $index = Index::fromInt(2);
-        $property = Node\ObjectProperty::create(
-            Node\StringNode::fromString($faker->word()),
-            Node\StringNode::fromString($faker->sentence()),
+        $index = Parser\Index::fromInt(2);
+        $property = Parser\Node\ObjectProperty::create(
+            Parser\Node\StringNode::fromString($faker->word()),
+            Parser\Node\StringNode::fromString($faker->sentence()),
         );
 
-        $properties = \array_map(static function () use ($faker): Node\ObjectProperty {
-            return Node\ObjectProperty::create(
-                Node\StringNode::fromString('foo'),
-                Node\StringNode::fromString($faker->sentence()),
+        $properties = \array_map(static function () use ($faker): Parser\Node\ObjectProperty {
+            return Parser\Node\ObjectProperty::create(
+                Parser\Node\StringNode::fromString('foo'),
+                Parser\Node\StringNode::fromString($faker->sentence()),
             );
         }, \range(0, 4));
 
-        $node = Node\ObjectNode::create(...$properties);
+        $node = Parser\Node\ObjectNode::create(...$properties);
 
         $node->replacePropertyAt(
             $index,

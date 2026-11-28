@@ -13,24 +13,23 @@ declare(strict_types=1);
 
 namespace Ergebnis\Json\Parser\Test\Double\Traverser;
 
-use Ergebnis\Json\Parser\Node;
-use Ergebnis\Json\Parser\Traverser;
+use Ergebnis\Json\Parser;
 
-final class SortingVisitor implements Traverser\Visitor
+final class SortingVisitor implements Parser\Traverser\Visitor
 {
     public function enter(
-        Node\Node $node,
-        Traverser\Path $path
-    ): Traverser\EnterAction {
-        return Traverser\EnterAction::keep();
+        Parser\Node\Node $node,
+        Parser\Traverser\Path $path
+    ): Parser\Traverser\EnterAction {
+        return Parser\Traverser\EnterAction::keep();
     }
 
     public function leave(
-        Node\Node $node,
-        Traverser\Path $path
-    ): Traverser\LeaveAction {
-        if (!$node instanceof Node\ObjectNode) {
-            return Traverser\LeaveAction::keep();
+        Parser\Node\Node $node,
+        Parser\Traverser\Path $path
+    ): Parser\Traverser\LeaveAction {
+        if (!$node instanceof Parser\Node\ObjectNode) {
+            return Parser\Traverser\LeaveAction::keep();
         }
 
         $properties = $node->properties();
@@ -55,6 +54,6 @@ final class SortingVisitor implements Traverser\Visitor
             $sortedProperties[] = $properties[$index];
         }
 
-        return Traverser\LeaveAction::replace(Node\ObjectNode::create(...$sortedProperties));
+        return Parser\Traverser\LeaveAction::replace(Parser\Node\ObjectNode::create(...$sortedProperties));
     }
 }

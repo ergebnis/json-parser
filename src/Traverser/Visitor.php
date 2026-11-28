@@ -13,17 +13,17 @@ declare(strict_types=1);
 
 namespace Ergebnis\Json\Parser\Traverser;
 
-use Ergebnis\Json\Parser\Node;
+use Ergebnis\Json\Parser;
 
 interface Visitor
 {
     public function enter(
-        Node\Node $node,
+        Parser\Node\Node $node,
         Path $path
     ): EnterAction;
 
     public function leave(
-        Node\Node $node,
+        Parser\Node\Node $node,
         Path $path
     ): LeaveAction;
 }

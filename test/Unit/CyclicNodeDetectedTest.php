@@ -13,8 +13,7 @@ declare(strict_types=1);
 
 namespace Ergebnis\Json\Parser\Test\Unit;
 
-use Ergebnis\Json\Parser\CyclicNodeDetected;
-use Ergebnis\Json\Parser\Node;
+use Ergebnis\Json\Parser;
 use PHPUnit\Framework;
 
 /**
@@ -26,13 +25,13 @@ final class CyclicNodeDetectedTest extends Framework\TestCase
 {
     public function testFromNodeReturnsCyclicNodeDetected(): void
     {
-        $node = Node\ArrayNode::create();
+        $node = Parser\Node\ArrayNode::create();
 
-        $exception = CyclicNodeDetected::fromNode($node);
+        $exception = Parser\CyclicNodeDetected::fromNode($node);
 
         $expected = \sprintf(
             'Node of class "%s" contains itself.',
-            Node\ArrayNode::class,
+            Parser\Node\ArrayNode::class,
         );
 
         self::assertSame($expected, $exception->getMessage());

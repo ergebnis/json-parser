@@ -13,21 +13,7 @@ declare(strict_types=1);
 
 namespace Ergebnis\Json\Parser\Test\Unit;
 
-use Ergebnis\Json\Parser\CyclicNodeDetected;
-use Ergebnis\Json\Parser\FinalNewLine;
-use Ergebnis\Json\Parser\Format;
-use Ergebnis\Json\Parser\Indent;
-use Ergebnis\Json\Parser\IndentSize;
-use Ergebnis\Json\Parser\IndentStyle;
-use Ergebnis\Json\Parser\Index;
-use Ergebnis\Json\Parser\MaximumDepth;
-use Ergebnis\Json\Parser\NewLine;
-use Ergebnis\Json\Parser\Node;
-use Ergebnis\Json\Parser\Parser;
-use Ergebnis\Json\Parser\Printer;
-use Ergebnis\Json\Parser\Raw;
-use Ergebnis\Json\Parser\Test;
-use Ergebnis\Json\Parser\UnsupportedNode;
+use Ergebnis\Json\Parser;
 use PHPUnit\Framework;
 
 /**
@@ -55,17 +41,17 @@ use PHPUnit\Framework;
  */
 final class PrinterTest extends Framework\TestCase
 {
-    use Test\Util\Helper;
+    use Parser\Test\Util\Helper;
 
     public function testPrintThrowsUnsupportedNodeWhenNodeIsNotSupported(): void
     {
-        $node = new Test\Double\Node\CustomNode();
+        $node = new Parser\Test\Double\Node\CustomNode();
 
-        $format = Format::compact();
+        $format = Parser\Format::compact();
 
-        $printer = new Printer();
+        $printer = new Parser\Printer();
 
-        $this->expectException(UnsupportedNode::class);
+        $this->expectException(Parser\UnsupportedNode::class);
 
         $printer->print(
             $node,
@@ -75,15 +61,15 @@ final class PrinterTest extends Framework\TestCase
 
     public function testPrintThrowsCyclicNodeDetectedWhenArrayNodeContainsItself(): void
     {
-        $node = Node\ArrayNode::create();
+        $node = Parser\Node\ArrayNode::create();
 
         $node->addElement($node);
 
-        $format = Format::compact();
+        $format = Parser\Format::compact();
 
-        $printer = new Printer();
+        $printer = new Parser\Printer();
 
-        $this->expectException(CyclicNodeDetected::class);
+        $this->expectException(Parser\CyclicNodeDetected::class);
 
         $printer->print(
             $node,
@@ -93,18 +79,18 @@ final class PrinterTest extends Framework\TestCase
 
     public function testPrintThrowsCyclicNodeDetectedWhenObjectNodeContainsItself(): void
     {
-        $node = Node\ObjectNode::create();
+        $node = Parser\Node\ObjectNode::create();
 
-        $node->addProperty(Node\ObjectProperty::create(
-            Node\StringNode::fromString(self::faker()->word()),
+        $node->addProperty(Parser\Node\ObjectProperty::create(
+            Parser\Node\StringNode::fromString(self::faker()->word()),
             $node,
         ));
 
-        $format = Format::compact();
+        $format = Parser\Format::compact();
 
-        $printer = new Printer();
+        $printer = new Parser\Printer();
 
-        $this->expectException(CyclicNodeDetected::class);
+        $this->expectException(Parser\CyclicNodeDetected::class);
 
         $printer->print(
             $node,
@@ -114,18 +100,18 @@ final class PrinterTest extends Framework\TestCase
 
     public function testPrintThrowsCyclicNodeDetectedWhenNodeContainsItselfThroughOtherContainers(): void
     {
-        $node = Node\ArrayNode::create();
+        $node = Parser\Node\ArrayNode::create();
 
-        $node->addElement(Node\ObjectNode::create(Node\ObjectProperty::create(
-            Node\StringNode::fromString(self::faker()->word()),
-            Node\ArrayNode::create($node),
+        $node->addElement(Parser\Node\ObjectNode::create(Parser\Node\ObjectProperty::create(
+            Parser\Node\StringNode::fromString(self::faker()->word()),
+            Parser\Node\ArrayNode::create($node),
         )));
 
-        $format = Format::compact();
+        $format = Parser\Format::compact();
 
-        $printer = new Printer();
+        $printer = new Parser\Printer();
 
-        $this->expectException(CyclicNodeDetected::class);
+        $this->expectException(Parser\CyclicNodeDetected::class);
 
         $printer->print(
             $node,
@@ -135,22 +121,22 @@ final class PrinterTest extends Framework\TestCase
 
     public function testPrintPrintsNodesAddedInSeveralPlaces(): void
     {
-        $array = Node\ArrayNode::create(Node\NullNode::create());
-        $object = Node\ObjectNode::create(Node\ObjectProperty::create(
-            Node\StringNode::fromString('a'),
-            Node\NullNode::create(),
+        $array = Parser\Node\ArrayNode::create(Parser\Node\NullNode::create());
+        $object = Parser\Node\ObjectNode::create(Parser\Node\ObjectProperty::create(
+            Parser\Node\StringNode::fromString('a'),
+            Parser\Node\NullNode::create(),
         ));
 
-        $node = Node\ArrayNode::create(
+        $node = Parser\Node\ArrayNode::create(
             $array,
             $object,
             $array,
             $object,
         );
 
-        $format = Format::compact();
+        $format = Parser\Format::compact();
 
-        $printer = new Printer();
+        $printer = new Parser\Printer();
 
         $printed = $printer->print(
             $node,
@@ -162,19 +148,19 @@ final class PrinterTest extends Framework\TestCase
 
     public function testPrintForgetsContainersWhenThrowingCyclicNodeDetectedForArrayNode(): void
     {
-        $name = Node\StringNode::fromString(self::faker()->word());
+        $name = Parser\Node\StringNode::fromString(self::faker()->word());
 
-        $object = Node\ObjectNode::create();
-        $array = Node\ArrayNode::create($object);
+        $object = Parser\Node\ObjectNode::create();
+        $array = Parser\Node\ArrayNode::create($object);
 
-        $object->addProperty(Node\ObjectProperty::create(
+        $object->addProperty(Parser\Node\ObjectProperty::create(
             $name,
             $array,
         ));
 
-        $format = Format::compact();
+        $format = Parser\Format::compact();
 
-        $printer = new Printer();
+        $printer = new Parser\Printer();
 
         try {
             $printer->print(
@@ -183,12 +169,12 @@ final class PrinterTest extends Framework\TestCase
             );
 
             self::fail('Expected CyclicNodeDetected to be thrown.');
-        } catch (CyclicNodeDetected $exception) {
+        } catch (Parser\CyclicNodeDetected $cyclicNodeDetected) {
             $object->replacePropertyAt(
-                Index::fromInt(0),
-                Node\ObjectProperty::create(
+                Parser\Index::fromInt(0),
+                Parser\Node\ObjectProperty::create(
                     $name,
-                    Node\NullNode::create(),
+                    Parser\Node\NullNode::create(),
                 ),
             );
         }
@@ -203,19 +189,19 @@ final class PrinterTest extends Framework\TestCase
 
     public function testPrintForgetsContainersWhenThrowingCyclicNodeDetectedForObjectNode(): void
     {
-        $name = Node\StringNode::fromString(self::faker()->word());
+        $name = Parser\Node\StringNode::fromString(self::faker()->word());
 
-        $array = Node\ArrayNode::create();
-        $object = Node\ObjectNode::create(Node\ObjectProperty::create(
+        $array = Parser\Node\ArrayNode::create();
+        $object = Parser\Node\ObjectNode::create(Parser\Node\ObjectProperty::create(
             $name,
             $array,
         ));
 
         $array->addElement($object);
 
-        $format = Format::compact();
+        $format = Parser\Format::compact();
 
-        $printer = new Printer();
+        $printer = new Parser\Printer();
 
         try {
             $printer->print(
@@ -224,10 +210,10 @@ final class PrinterTest extends Framework\TestCase
             );
 
             self::fail('Expected CyclicNodeDetected to be thrown.');
-        } catch (CyclicNodeDetected $exception) {
+        } catch (Parser\CyclicNodeDetected $cyclicNodeDetected) {
             $array->replaceElementAt(
-                Index::fromInt(0),
-                Node\NullNode::create(),
+                Parser\Index::fromInt(0),
+                Parser\Node\NullNode::create(),
             );
         }
 
@@ -243,18 +229,18 @@ final class PrinterTest extends Framework\TestCase
     {
         $json = "{\r\n\t\"name\": \"ergebnis/json-parser\",\r\n\t\"keywords\": [\r\n\t\t\"json\",\r\n\t\t\"parser\"\r\n\t],\r\n\t\"extra\": {}\r\n}\r\n";
 
-        $raw = Raw::fromString($json);
+        $raw = Parser\Raw::fromString($json);
 
-        $parser = new Parser();
+        $parser = new Parser\Parser();
 
         $node = $parser->parse(
             $raw,
-            MaximumDepth::default(),
+            Parser\MaximumDepth::default(),
         );
 
-        $format = Format::fromRaw($raw);
+        $format = Parser\Format::fromRaw($raw);
 
-        $printer = new Printer();
+        $printer = new Parser\Printer();
 
         $printed = $printer->print(
             $node,
@@ -266,10 +252,10 @@ final class PrinterTest extends Framework\TestCase
 
     public function testPrintPrintsNullNodeWhenFormatIsCompact(): void
     {
-        $node = Node\NullNode::create();
-        $format = Format::compact();
+        $node = Parser\Node\NullNode::create();
+        $format = Parser\Format::compact();
 
-        $printer = new Printer();
+        $printer = new Parser\Printer();
 
         $printed = $printer->print(
             $node,
@@ -283,12 +269,12 @@ final class PrinterTest extends Framework\TestCase
      * @dataProvider provideBooleanNodeAndExpected
      */
     public function testPrintPrintsBooleanNodeWhenFormatIsCompact(
-        Node\BooleanNode $node,
+        Parser\Node\BooleanNode $node,
         string $expected
     ): void {
-        $format = Format::compact();
+        $format = Parser\Format::compact();
 
-        $printer = new Printer();
+        $printer = new Parser\Printer();
 
         $printed = $printer->print(
             $node,
@@ -299,17 +285,17 @@ final class PrinterTest extends Framework\TestCase
     }
 
     /**
-     * @return \Generator<string, array{0: Node\BooleanNode, 1: string}>
+     * @return \Generator<string, array{0: Parser\Node\BooleanNode, 1: string}>
      */
     public static function provideBooleanNodeAndExpected(): iterable
     {
         $values = [
             'true' => [
-                Node\BooleanNode::fromBool(true),
+                Parser\Node\BooleanNode::fromBool(true),
                 'true',
             ],
             'false' => [
-                Node\BooleanNode::fromBool(false),
+                Parser\Node\BooleanNode::fromBool(false),
                 'false',
             ],
         ];
@@ -325,11 +311,11 @@ final class PrinterTest extends Framework\TestCase
     /**
      * @dataProvider provideNumberNode
      */
-    public function testPrintPrintsNumberNodeWhenFormatIsCompact(Node\NumberNode $node): void
+    public function testPrintPrintsNumberNodeWhenFormatIsCompact(Parser\Node\NumberNode $node): void
     {
-        $format = Format::compact();
+        $format = Parser\Format::compact();
 
-        $printer = new Printer();
+        $printer = new Parser\Printer();
 
         $printed = $printer->print(
             $node,
@@ -340,16 +326,16 @@ final class PrinterTest extends Framework\TestCase
     }
 
     /**
-     * @return \Generator<string, array{0: Node\NumberNode}>
+     * @return \Generator<string, array{0: Parser\Node\NumberNode}>
      */
     public static function provideNumberNode(): iterable
     {
         $values = [
-            'integer' => Node\NumberNode::fromRaw(Raw::fromString('42')),
-            'negative-zero' => Node\NumberNode::fromRaw(Raw::fromString('-0')),
-            'fraction' => Node\NumberNode::fromRaw(Raw::fromString('1.0')),
-            'exponent' => Node\NumberNode::fromRaw(Raw::fromString('1E+2')),
-            'integer-beyond-int-range' => Node\NumberNode::fromRaw(Raw::fromString('99999999999999999999')),
+            'integer' => Parser\Node\NumberNode::fromRaw(Parser\Raw::fromString('42')),
+            'negative-zero' => Parser\Node\NumberNode::fromRaw(Parser\Raw::fromString('-0')),
+            'fraction' => Parser\Node\NumberNode::fromRaw(Parser\Raw::fromString('1.0')),
+            'exponent' => Parser\Node\NumberNode::fromRaw(Parser\Raw::fromString('1E+2')),
+            'integer-beyond-int-range' => Parser\Node\NumberNode::fromRaw(Parser\Raw::fromString('99999999999999999999')),
         ];
 
         foreach ($values as $key => $numberNode) {
@@ -362,11 +348,11 @@ final class PrinterTest extends Framework\TestCase
     /**
      * @dataProvider provideStringNode
      */
-    public function testPrintPrintsStringNodeWhenFormatIsCompact(Node\StringNode $node): void
+    public function testPrintPrintsStringNodeWhenFormatIsCompact(Parser\Node\StringNode $node): void
     {
-        $format = Format::compact();
+        $format = Parser\Format::compact();
 
-        $printer = new Printer();
+        $printer = new Parser\Printer();
 
         $printed = $printer->print(
             $node,
@@ -377,17 +363,17 @@ final class PrinterTest extends Framework\TestCase
     }
 
     /**
-     * @return \Generator<string, array{0: Node\StringNode}>
+     * @return \Generator<string, array{0: Parser\Node\StringNode}>
      */
     public static function provideStringNode(): iterable
     {
         $values = [
-            'plain' => Node\StringNode::fromRaw(Raw::fromString('"hello"')),
-            'escaped-quote' => Node\StringNode::fromRaw(Raw::fromString('"hello \\"world\\""')),
-            'slash' => Node\StringNode::fromRaw(Raw::fromString('"a/b"')),
-            'escaped-slash' => Node\StringNode::fromRaw(Raw::fromString('"a\\/b"')),
-            'non-ascii' => Node\StringNode::fromRaw(Raw::fromString("\"caf\xC3\xA9\"")),
-            'unicode-escape' => Node\StringNode::fromRaw(Raw::fromString('"caf\\u00E9"')),
+            'plain' => Parser\Node\StringNode::fromRaw(Parser\Raw::fromString('"hello"')),
+            'escaped-quote' => Parser\Node\StringNode::fromRaw(Parser\Raw::fromString('"hello \\"world\\""')),
+            'slash' => Parser\Node\StringNode::fromRaw(Parser\Raw::fromString('"a/b"')),
+            'escaped-slash' => Parser\Node\StringNode::fromRaw(Parser\Raw::fromString('"a\\/b"')),
+            'non-ascii' => Parser\Node\StringNode::fromRaw(Parser\Raw::fromString("\"caf\xC3\xA9\"")),
+            'unicode-escape' => Parser\Node\StringNode::fromRaw(Parser\Raw::fromString('"caf\\u00E9"')),
         ];
 
         foreach ($values as $key => $stringNode) {
@@ -399,10 +385,10 @@ final class PrinterTest extends Framework\TestCase
 
     public function testPrintPrintsEmptyArrayNodeWhenFormatIsCompact(): void
     {
-        $node = Node\ArrayNode::create();
-        $format = Format::compact();
+        $node = Parser\Node\ArrayNode::create();
+        $format = Parser\Format::compact();
 
-        $printer = new Printer();
+        $printer = new Parser\Printer();
 
         $printed = $printer->print(
             $node,
@@ -414,15 +400,15 @@ final class PrinterTest extends Framework\TestCase
 
     public function testPrintPrintsArrayNodeWithElementsWhenFormatIsCompact(): void
     {
-        $node = Node\ArrayNode::create(
-            Node\NumberNode::fromRaw(Raw::fromString('1')),
-            Node\StringNode::fromRaw(Raw::fromString('"two"')),
-            Node\NullNode::create(),
+        $node = Parser\Node\ArrayNode::create(
+            Parser\Node\NumberNode::fromRaw(Parser\Raw::fromString('1')),
+            Parser\Node\StringNode::fromRaw(Parser\Raw::fromString('"two"')),
+            Parser\Node\NullNode::create(),
         );
 
-        $format = Format::compact();
+        $format = Parser\Format::compact();
 
-        $printer = new Printer();
+        $printer = new Parser\Printer();
 
         $printed = $printer->print(
             $node,
@@ -434,10 +420,10 @@ final class PrinterTest extends Framework\TestCase
 
     public function testPrintPrintsEmptyObjectNodeWhenFormatIsCompact(): void
     {
-        $node = Node\ObjectNode::create();
-        $format = Format::compact();
+        $node = Parser\Node\ObjectNode::create();
+        $format = Parser\Format::compact();
 
-        $printer = new Printer();
+        $printer = new Parser\Printer();
 
         $printed = $printer->print(
             $node,
@@ -449,28 +435,28 @@ final class PrinterTest extends Framework\TestCase
 
     public function testPrintPrintsObjectNodeWithPropertiesWhenFormatIsCompact(): void
     {
-        $node = Node\ObjectNode::create(
-            Node\ObjectProperty::create(
-                Node\StringNode::fromRaw(Raw::fromString('"name"')),
-                Node\StringNode::fromRaw(Raw::fromString('"test"')),
+        $node = Parser\Node\ObjectNode::create(
+            Parser\Node\ObjectProperty::create(
+                Parser\Node\StringNode::fromRaw(Parser\Raw::fromString('"name"')),
+                Parser\Node\StringNode::fromRaw(Parser\Raw::fromString('"test"')),
             ),
-            Node\ObjectProperty::create(
-                Node\StringNode::fromRaw(Raw::fromString('"count"')),
-                Node\NumberNode::fromRaw(Raw::fromString('3')),
+            Parser\Node\ObjectProperty::create(
+                Parser\Node\StringNode::fromRaw(Parser\Raw::fromString('"count"')),
+                Parser\Node\NumberNode::fromRaw(Parser\Raw::fromString('3')),
             ),
-            Node\ObjectProperty::create(
-                Node\StringNode::fromRaw(Raw::fromString('"a\\/b"')),
-                Node\NullNode::create(),
+            Parser\Node\ObjectProperty::create(
+                Parser\Node\StringNode::fromRaw(Parser\Raw::fromString('"a\\/b"')),
+                Parser\Node\NullNode::create(),
             ),
-            Node\ObjectProperty::create(
-                Node\StringNode::fromRaw(Raw::fromString('"count"')),
-                Node\NumberNode::fromRaw(Raw::fromString('4')),
+            Parser\Node\ObjectProperty::create(
+                Parser\Node\StringNode::fromRaw(Parser\Raw::fromString('"count"')),
+                Parser\Node\NumberNode::fromRaw(Parser\Raw::fromString('4')),
             ),
         );
 
-        $format = Format::compact();
+        $format = Parser\Format::compact();
 
-        $printer = new Printer();
+        $printer = new Parser\Printer();
 
         $printed = $printer->print(
             $node,
@@ -482,23 +468,23 @@ final class PrinterTest extends Framework\TestCase
 
     public function testPrintPrintsNestedStructureWhenFormatIsCompact(): void
     {
-        $node = Node\ObjectNode::create(
-            Node\ObjectProperty::create(
-                Node\StringNode::fromRaw(Raw::fromString('"items"')),
-                Node\ArrayNode::create(Node\ObjectNode::create(Node\ObjectProperty::create(
-                    Node\StringNode::fromRaw(Raw::fromString('"id"')),
-                    Node\NumberNode::fromRaw(Raw::fromString('1')),
+        $node = Parser\Node\ObjectNode::create(
+            Parser\Node\ObjectProperty::create(
+                Parser\Node\StringNode::fromRaw(Parser\Raw::fromString('"items"')),
+                Parser\Node\ArrayNode::create(Parser\Node\ObjectNode::create(Parser\Node\ObjectProperty::create(
+                    Parser\Node\StringNode::fromRaw(Parser\Raw::fromString('"id"')),
+                    Parser\Node\NumberNode::fromRaw(Parser\Raw::fromString('1')),
                 ))),
             ),
-            Node\ObjectProperty::create(
-                Node\StringNode::fromRaw(Raw::fromString('"active"')),
-                Node\BooleanNode::fromBool(true),
+            Parser\Node\ObjectProperty::create(
+                Parser\Node\StringNode::fromRaw(Parser\Raw::fromString('"active"')),
+                Parser\Node\BooleanNode::fromBool(true),
             ),
         );
 
-        $format = Format::compact();
+        $format = Parser\Format::compact();
 
-        $printer = new Printer();
+        $printer = new Parser\Printer();
 
         $printed = $printer->print(
             $node,
@@ -510,18 +496,18 @@ final class PrinterTest extends Framework\TestCase
 
     public function testPrintPrintsNullNodeWhenFormatHasIndentAndNewLine(): void
     {
-        $node = Node\NullNode::create();
+        $node = Parser\Node\NullNode::create();
 
-        $format = Format::create(
-            Indent::create(
-                IndentSize::fromInt(4),
-                IndentStyle::space(),
+        $format = Parser\Format::create(
+            Parser\Indent::create(
+                Parser\IndentSize::fromInt(4),
+                Parser\IndentStyle::space(),
             ),
-            NewLine::lf(),
-            FinalNewLine::none(),
+            Parser\NewLine::lf(),
+            Parser\FinalNewLine::none(),
         );
 
-        $printer = new Printer();
+        $printer = new Parser\Printer();
 
         $printed = $printer->print(
             $node,
@@ -535,19 +521,19 @@ final class PrinterTest extends Framework\TestCase
      * @dataProvider provideBooleanNodeAndExpected
      */
     public function testPrintPrintsBooleanNodeWhenFormatHasIndentAndNewLine(
-        Node\BooleanNode $node,
+        Parser\Node\BooleanNode $node,
         string $expected
     ): void {
-        $format = Format::create(
-            Indent::create(
-                IndentSize::fromInt(4),
-                IndentStyle::space(),
+        $format = Parser\Format::create(
+            Parser\Indent::create(
+                Parser\IndentSize::fromInt(4),
+                Parser\IndentStyle::space(),
             ),
-            NewLine::lf(),
-            FinalNewLine::none(),
+            Parser\NewLine::lf(),
+            Parser\FinalNewLine::none(),
         );
 
-        $printer = new Printer();
+        $printer = new Parser\Printer();
 
         $printed = $printer->print(
             $node,
@@ -560,18 +546,18 @@ final class PrinterTest extends Framework\TestCase
     /**
      * @dataProvider provideNumberNode
      */
-    public function testPrintPrintsNumberNodeWhenFormatHasIndentAndNewLine(Node\NumberNode $node): void
+    public function testPrintPrintsNumberNodeWhenFormatHasIndentAndNewLine(Parser\Node\NumberNode $node): void
     {
-        $format = Format::create(
-            Indent::create(
-                IndentSize::fromInt(4),
-                IndentStyle::space(),
+        $format = Parser\Format::create(
+            Parser\Indent::create(
+                Parser\IndentSize::fromInt(4),
+                Parser\IndentStyle::space(),
             ),
-            NewLine::lf(),
-            FinalNewLine::none(),
+            Parser\NewLine::lf(),
+            Parser\FinalNewLine::none(),
         );
 
-        $printer = new Printer();
+        $printer = new Parser\Printer();
 
         $printed = $printer->print(
             $node,
@@ -584,18 +570,18 @@ final class PrinterTest extends Framework\TestCase
     /**
      * @dataProvider provideStringNode
      */
-    public function testPrintPrintsStringNodeWhenFormatHasIndentAndNewLine(Node\StringNode $node): void
+    public function testPrintPrintsStringNodeWhenFormatHasIndentAndNewLine(Parser\Node\StringNode $node): void
     {
-        $format = Format::create(
-            Indent::create(
-                IndentSize::fromInt(4),
-                IndentStyle::space(),
+        $format = Parser\Format::create(
+            Parser\Indent::create(
+                Parser\IndentSize::fromInt(4),
+                Parser\IndentStyle::space(),
             ),
-            NewLine::lf(),
-            FinalNewLine::none(),
+            Parser\NewLine::lf(),
+            Parser\FinalNewLine::none(),
         );
 
-        $printer = new Printer();
+        $printer = new Parser\Printer();
 
         $printed = $printer->print(
             $node,
@@ -607,18 +593,18 @@ final class PrinterTest extends Framework\TestCase
 
     public function testPrintPrintsEmptyArrayNodeWhenFormatHasIndentAndNewLine(): void
     {
-        $node = Node\ArrayNode::create();
+        $node = Parser\Node\ArrayNode::create();
 
-        $format = Format::create(
-            Indent::create(
-                IndentSize::fromInt(4),
-                IndentStyle::space(),
+        $format = Parser\Format::create(
+            Parser\Indent::create(
+                Parser\IndentSize::fromInt(4),
+                Parser\IndentStyle::space(),
             ),
-            NewLine::lf(),
-            FinalNewLine::none(),
+            Parser\NewLine::lf(),
+            Parser\FinalNewLine::none(),
         );
 
-        $printer = new Printer();
+        $printer = new Parser\Printer();
 
         $printed = $printer->print(
             $node,
@@ -630,22 +616,22 @@ final class PrinterTest extends Framework\TestCase
 
     public function testPrintPrintsArrayNodeWithElementsWhenFormatHasIndentAndNewLine(): void
     {
-        $node = Node\ArrayNode::create(
-            Node\NumberNode::fromRaw(Raw::fromString('1')),
-            Node\StringNode::fromRaw(Raw::fromString('"two"')),
-            Node\NullNode::create(),
+        $node = Parser\Node\ArrayNode::create(
+            Parser\Node\NumberNode::fromRaw(Parser\Raw::fromString('1')),
+            Parser\Node\StringNode::fromRaw(Parser\Raw::fromString('"two"')),
+            Parser\Node\NullNode::create(),
         );
 
-        $format = Format::create(
-            Indent::create(
-                IndentSize::fromInt(4),
-                IndentStyle::space(),
+        $format = Parser\Format::create(
+            Parser\Indent::create(
+                Parser\IndentSize::fromInt(4),
+                Parser\IndentStyle::space(),
             ),
-            NewLine::lf(),
-            FinalNewLine::none(),
+            Parser\NewLine::lf(),
+            Parser\FinalNewLine::none(),
         );
 
-        $printer = new Printer();
+        $printer = new Parser\Printer();
 
         $printed = $printer->print(
             $node,
@@ -665,18 +651,18 @@ final class PrinterTest extends Framework\TestCase
 
     public function testPrintPrintsEmptyObjectNodeWhenFormatHasIndentAndNewLine(): void
     {
-        $node = Node\ObjectNode::create();
+        $node = Parser\Node\ObjectNode::create();
 
-        $format = Format::create(
-            Indent::create(
-                IndentSize::fromInt(4),
-                IndentStyle::space(),
+        $format = Parser\Format::create(
+            Parser\Indent::create(
+                Parser\IndentSize::fromInt(4),
+                Parser\IndentStyle::space(),
             ),
-            NewLine::lf(),
-            FinalNewLine::none(),
+            Parser\NewLine::lf(),
+            Parser\FinalNewLine::none(),
         );
 
-        $printer = new Printer();
+        $printer = new Parser\Printer();
 
         $printed = $printer->print(
             $node,
@@ -688,31 +674,31 @@ final class PrinterTest extends Framework\TestCase
 
     public function testPrintPrintsObjectNodeWithPropertiesWhenFormatHasIndentAndNewLine(): void
     {
-        $node = Node\ObjectNode::create(
-            Node\ObjectProperty::create(
-                Node\StringNode::fromRaw(Raw::fromString('"name"')),
-                Node\StringNode::fromRaw(Raw::fromString('"test"')),
+        $node = Parser\Node\ObjectNode::create(
+            Parser\Node\ObjectProperty::create(
+                Parser\Node\StringNode::fromRaw(Parser\Raw::fromString('"name"')),
+                Parser\Node\StringNode::fromRaw(Parser\Raw::fromString('"test"')),
             ),
-            Node\ObjectProperty::create(
-                Node\StringNode::fromRaw(Raw::fromString('"a\\/b"')),
-                Node\NullNode::create(),
+            Parser\Node\ObjectProperty::create(
+                Parser\Node\StringNode::fromRaw(Parser\Raw::fromString('"a\\/b"')),
+                Parser\Node\NullNode::create(),
             ),
-            Node\ObjectProperty::create(
-                Node\StringNode::fromRaw(Raw::fromString('"name"')),
-                Node\NumberNode::fromRaw(Raw::fromString('4')),
+            Parser\Node\ObjectProperty::create(
+                Parser\Node\StringNode::fromRaw(Parser\Raw::fromString('"name"')),
+                Parser\Node\NumberNode::fromRaw(Parser\Raw::fromString('4')),
             ),
         );
 
-        $format = Format::create(
-            Indent::create(
-                IndentSize::fromInt(4),
-                IndentStyle::space(),
+        $format = Parser\Format::create(
+            Parser\Indent::create(
+                Parser\IndentSize::fromInt(4),
+                Parser\IndentStyle::space(),
             ),
-            NewLine::lf(),
-            FinalNewLine::none(),
+            Parser\NewLine::lf(),
+            Parser\FinalNewLine::none(),
         );
 
-        $printer = new Printer();
+        $printer = new Parser\Printer();
 
         $printed = $printer->print(
             $node,
@@ -732,37 +718,37 @@ final class PrinterTest extends Framework\TestCase
 
     public function testPrintPrintsNestedStructureWhenIndentIsTab(): void
     {
-        $node = Node\ObjectNode::create(
-            Node\ObjectProperty::create(
-                Node\StringNode::fromRaw(Raw::fromString('"items"')),
-                Node\ArrayNode::create(
-                    Node\ObjectNode::create(Node\ObjectProperty::create(
-                        Node\StringNode::fromRaw(Raw::fromString('"id"')),
-                        Node\NumberNode::fromRaw(Raw::fromString('1')),
+        $node = Parser\Node\ObjectNode::create(
+            Parser\Node\ObjectProperty::create(
+                Parser\Node\StringNode::fromRaw(Parser\Raw::fromString('"items"')),
+                Parser\Node\ArrayNode::create(
+                    Parser\Node\ObjectNode::create(Parser\Node\ObjectProperty::create(
+                        Parser\Node\StringNode::fromRaw(Parser\Raw::fromString('"id"')),
+                        Parser\Node\NumberNode::fromRaw(Parser\Raw::fromString('1')),
                     )),
-                    Node\ArrayNode::create(Node\BooleanNode::fromBool(true)),
+                    Parser\Node\ArrayNode::create(Parser\Node\BooleanNode::fromBool(true)),
                 ),
             ),
-            Node\ObjectProperty::create(
-                Node\StringNode::fromRaw(Raw::fromString('"tags"')),
-                Node\ArrayNode::create(),
+            Parser\Node\ObjectProperty::create(
+                Parser\Node\StringNode::fromRaw(Parser\Raw::fromString('"tags"')),
+                Parser\Node\ArrayNode::create(),
             ),
-            Node\ObjectProperty::create(
-                Node\StringNode::fromRaw(Raw::fromString('"meta"')),
-                Node\ObjectNode::create(),
+            Parser\Node\ObjectProperty::create(
+                Parser\Node\StringNode::fromRaw(Parser\Raw::fromString('"meta"')),
+                Parser\Node\ObjectNode::create(),
             ),
         );
 
-        $format = Format::create(
-            Indent::create(
-                IndentSize::fromInt(1),
-                IndentStyle::tab(),
+        $format = Parser\Format::create(
+            Parser\Indent::create(
+                Parser\IndentSize::fromInt(1),
+                Parser\IndentStyle::tab(),
             ),
-            NewLine::lf(),
-            FinalNewLine::none(),
+            Parser\NewLine::lf(),
+            Parser\FinalNewLine::none(),
         );
 
-        $printer = new Printer();
+        $printer = new Parser\Printer();
 
         $printed = $printer->print(
             $node,
@@ -776,30 +762,30 @@ final class PrinterTest extends Framework\TestCase
 
     public function testPrintPrintsNestedStructureWhenNewLineIsCrLf(): void
     {
-        $node = Node\ObjectNode::create(
-            Node\ObjectProperty::create(
-                Node\StringNode::fromRaw(Raw::fromString('"items"')),
-                Node\ArrayNode::create(
-                    Node\NumberNode::fromRaw(Raw::fromString('1')),
-                    Node\NumberNode::fromRaw(Raw::fromString('2')),
+        $node = Parser\Node\ObjectNode::create(
+            Parser\Node\ObjectProperty::create(
+                Parser\Node\StringNode::fromRaw(Parser\Raw::fromString('"items"')),
+                Parser\Node\ArrayNode::create(
+                    Parser\Node\NumberNode::fromRaw(Parser\Raw::fromString('1')),
+                    Parser\Node\NumberNode::fromRaw(Parser\Raw::fromString('2')),
                 ),
             ),
-            Node\ObjectProperty::create(
-                Node\StringNode::fromRaw(Raw::fromString('"meta"')),
-                Node\ObjectNode::create(),
+            Parser\Node\ObjectProperty::create(
+                Parser\Node\StringNode::fromRaw(Parser\Raw::fromString('"meta"')),
+                Parser\Node\ObjectNode::create(),
             ),
         );
 
-        $format = Format::create(
-            Indent::create(
-                IndentSize::fromInt(2),
-                IndentStyle::space(),
+        $format = Parser\Format::create(
+            Parser\Indent::create(
+                Parser\IndentSize::fromInt(2),
+                Parser\IndentStyle::space(),
             ),
-            NewLine::crLf(),
-            FinalNewLine::none(),
+            Parser\NewLine::crLf(),
+            Parser\FinalNewLine::none(),
         );
 
-        $printer = new Printer();
+        $printer = new Parser\Printer();
 
         $printed = $printer->print(
             $node,
@@ -813,27 +799,27 @@ final class PrinterTest extends Framework\TestCase
 
     public function testPrintPrintsNestedStructureWhenIndentIsNone(): void
     {
-        $node = Node\ObjectNode::create(
-            Node\ObjectProperty::create(
-                Node\StringNode::fromRaw(Raw::fromString('"items"')),
-                Node\ArrayNode::create(
-                    Node\NumberNode::fromRaw(Raw::fromString('1')),
-                    Node\NumberNode::fromRaw(Raw::fromString('2')),
+        $node = Parser\Node\ObjectNode::create(
+            Parser\Node\ObjectProperty::create(
+                Parser\Node\StringNode::fromRaw(Parser\Raw::fromString('"items"')),
+                Parser\Node\ArrayNode::create(
+                    Parser\Node\NumberNode::fromRaw(Parser\Raw::fromString('1')),
+                    Parser\Node\NumberNode::fromRaw(Parser\Raw::fromString('2')),
                 ),
             ),
-            Node\ObjectProperty::create(
-                Node\StringNode::fromRaw(Raw::fromString('"meta"')),
-                Node\ObjectNode::create(),
+            Parser\Node\ObjectProperty::create(
+                Parser\Node\StringNode::fromRaw(Parser\Raw::fromString('"meta"')),
+                Parser\Node\ObjectNode::create(),
             ),
         );
 
-        $format = Format::create(
-            Indent::none(),
-            NewLine::lf(),
-            FinalNewLine::none(),
+        $format = Parser\Format::create(
+            Parser\Indent::none(),
+            Parser\NewLine::lf(),
+            Parser\FinalNewLine::none(),
         );
 
-        $printer = new Printer();
+        $printer = new Parser\Printer();
 
         $printed = $printer->print(
             $node,
@@ -847,27 +833,27 @@ final class PrinterTest extends Framework\TestCase
 
     public function testPrintPrintsNestedStructureWhenIndentAndNewLineAreNone(): void
     {
-        $node = Node\ObjectNode::create(
-            Node\ObjectProperty::create(
-                Node\StringNode::fromRaw(Raw::fromString('"items"')),
-                Node\ArrayNode::create(
-                    Node\NumberNode::fromRaw(Raw::fromString('1')),
-                    Node\NumberNode::fromRaw(Raw::fromString('2')),
+        $node = Parser\Node\ObjectNode::create(
+            Parser\Node\ObjectProperty::create(
+                Parser\Node\StringNode::fromRaw(Parser\Raw::fromString('"items"')),
+                Parser\Node\ArrayNode::create(
+                    Parser\Node\NumberNode::fromRaw(Parser\Raw::fromString('1')),
+                    Parser\Node\NumberNode::fromRaw(Parser\Raw::fromString('2')),
                 ),
             ),
-            Node\ObjectProperty::create(
-                Node\StringNode::fromRaw(Raw::fromString('"meta"')),
-                Node\ObjectNode::create(),
+            Parser\Node\ObjectProperty::create(
+                Parser\Node\StringNode::fromRaw(Parser\Raw::fromString('"meta"')),
+                Parser\Node\ObjectNode::create(),
             ),
         );
 
-        $format = Format::create(
-            Indent::none(),
-            NewLine::none(),
-            FinalNewLine::none(),
+        $format = Parser\Format::create(
+            Parser\Indent::none(),
+            Parser\NewLine::none(),
+            Parser\FinalNewLine::none(),
         );
 
-        $printer = new Printer();
+        $printer = new Parser\Printer();
 
         $printed = $printer->print(
             $node,
@@ -879,46 +865,46 @@ final class PrinterTest extends Framework\TestCase
 
     public function testPrintPrintsSameLayoutAsJsonEncodeWithPrettyPrintWhenFormatHasIndentAndNewLine(): void
     {
-        $node = Node\ObjectNode::create(
-            Node\ObjectProperty::create(
-                Node\StringNode::fromRaw(Raw::fromString('"items"')),
-                Node\ArrayNode::create(
-                    Node\ObjectNode::create(
-                        Node\ObjectProperty::create(
-                            Node\StringNode::fromRaw(Raw::fromString('"id"')),
-                            Node\NumberNode::fromRaw(Raw::fromString('1')),
+        $node = Parser\Node\ObjectNode::create(
+            Parser\Node\ObjectProperty::create(
+                Parser\Node\StringNode::fromRaw(Parser\Raw::fromString('"items"')),
+                Parser\Node\ArrayNode::create(
+                    Parser\Node\ObjectNode::create(
+                        Parser\Node\ObjectProperty::create(
+                            Parser\Node\StringNode::fromRaw(Parser\Raw::fromString('"id"')),
+                            Parser\Node\NumberNode::fromRaw(Parser\Raw::fromString('1')),
                         ),
-                        Node\ObjectProperty::create(
-                            Node\StringNode::fromRaw(Raw::fromString('"children"')),
-                            Node\ArrayNode::create(
-                                Node\NumberNode::fromRaw(Raw::fromString('2')),
-                                Node\NumberNode::fromRaw(Raw::fromString('3')),
+                        Parser\Node\ObjectProperty::create(
+                            Parser\Node\StringNode::fromRaw(Parser\Raw::fromString('"children"')),
+                            Parser\Node\ArrayNode::create(
+                                Parser\Node\NumberNode::fromRaw(Parser\Raw::fromString('2')),
+                                Parser\Node\NumberNode::fromRaw(Parser\Raw::fromString('3')),
                             ),
                         ),
                     ),
-                    Node\NullNode::create(),
+                    Parser\Node\NullNode::create(),
                 ),
             ),
-            Node\ObjectProperty::create(
-                Node\StringNode::fromRaw(Raw::fromString('"tags"')),
-                Node\ArrayNode::create(),
+            Parser\Node\ObjectProperty::create(
+                Parser\Node\StringNode::fromRaw(Parser\Raw::fromString('"tags"')),
+                Parser\Node\ArrayNode::create(),
             ),
-            Node\ObjectProperty::create(
-                Node\StringNode::fromRaw(Raw::fromString('"meta"')),
-                Node\ObjectNode::create(),
+            Parser\Node\ObjectProperty::create(
+                Parser\Node\StringNode::fromRaw(Parser\Raw::fromString('"meta"')),
+                Parser\Node\ObjectNode::create(),
             ),
         );
 
-        $format = Format::create(
-            Indent::create(
-                IndentSize::fromInt(4),
-                IndentStyle::space(),
+        $format = Parser\Format::create(
+            Parser\Indent::create(
+                Parser\IndentSize::fromInt(4),
+                Parser\IndentStyle::space(),
             ),
-            NewLine::lf(),
-            FinalNewLine::none(),
+            Parser\NewLine::lf(),
+            Parser\FinalNewLine::none(),
         );
 
-        $printer = new Printer();
+        $printer = new Parser\Printer();
 
         $printed = $printer->print(
             $node,
@@ -949,20 +935,20 @@ final class PrinterTest extends Framework\TestCase
     /**
      * @dataProvider provideNewLineForFinalNewLine
      */
-    public function testPrintAppendsNewLineWhenFormatHasFinalNewLine(NewLine $newLine): void
+    public function testPrintAppendsNewLineWhenFormatHasFinalNewLine(Parser\NewLine $newLine): void
     {
-        $node = Node\ArrayNode::create(Node\NullNode::create());
+        $node = Parser\Node\ArrayNode::create(Parser\Node\NullNode::create());
 
-        $format = Format::create(
-            Indent::create(
-                IndentSize::fromInt(2),
-                IndentStyle::space(),
+        $format = Parser\Format::create(
+            Parser\Indent::create(
+                Parser\IndentSize::fromInt(2),
+                Parser\IndentStyle::space(),
             ),
             $newLine,
-            FinalNewLine::present(),
+            Parser\FinalNewLine::present(),
         );
 
-        $printer = new Printer();
+        $printer = new Parser\Printer();
 
         $printed = $printer->print(
             $node,
@@ -975,13 +961,13 @@ final class PrinterTest extends Framework\TestCase
     }
 
     /**
-     * @return \Generator<string, array{0: NewLine}>
+     * @return \Generator<string, array{0: Parser\NewLine}>
      */
     public static function provideNewLineForFinalNewLine(): iterable
     {
         $values = [
-            'cr-lf' => NewLine::crLf(),
-            'lf' => NewLine::lf(),
+            'cr-lf' => Parser\NewLine::crLf(),
+            'lf' => Parser\NewLine::lf(),
         ];
 
         foreach ($values as $key => $newLine) {

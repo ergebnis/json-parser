@@ -13,8 +13,7 @@ declare(strict_types=1);
 
 namespace Ergebnis\Json\Parser\Test\Unit;
 
-use Ergebnis\Json\Parser\InvalidOffset;
-use Ergebnis\Json\Parser\Test;
+use Ergebnis\Json\Parser;
 use PHPUnit\Framework;
 
 /**
@@ -22,13 +21,13 @@ use PHPUnit\Framework;
  */
 final class InvalidOffsetTest extends Framework\TestCase
 {
-    use Test\Util\Helper;
+    use Parser\Test\Util\Helper;
 
     public function testLessThanZeroReturnsInvalidOffset(): void
     {
         $value = self::faker()->numberBetween(-100, -1);
 
-        $exception = InvalidOffset::lessThanZero($value);
+        $exception = Parser\InvalidOffset::lessThanZero($value);
 
         $message = \sprintf(
             'Offset %d must not be negative.',

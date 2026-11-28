@@ -13,7 +13,7 @@ declare(strict_types=1);
 
 namespace Ergebnis\Json\Parser\Test\DataProvider;
 
-use Ergebnis\Json\Parser\Test;
+use Ergebnis\Json\Parser;
 
 final class FixtureProvider
 {
@@ -22,7 +22,7 @@ final class FixtureProvider
      */
     public static function fixture(): iterable
     {
-        foreach (Test\Benchmark\Fixture::names() as $name) {
+        foreach (Parser\Test\Benchmark\Fixture::names() as $name) {
             yield $name => [
                 'fixture' => $name,
             ];
@@ -34,7 +34,7 @@ final class FixtureProvider
      */
     public static function fixtureForPrettyFormat(): iterable
     {
-        foreach (Test\Benchmark\Fixture::names() as $name) {
+        foreach (Parser\Test\Benchmark\Fixture::names() as $name) {
             /**
              * The indentation of deep-nesting grows with every level: printed with an indent of 4 spaces, the document has about 67 MB of indentation.
              */

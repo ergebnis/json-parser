@@ -13,8 +13,7 @@ declare(strict_types=1);
 
 namespace Ergebnis\Json\Parser\Test\Unit;
 
-use Ergebnis\Json\Parser\InvalidColumn;
-use Ergebnis\Json\Parser\Test;
+use Ergebnis\Json\Parser;
 use PHPUnit\Framework;
 
 /**
@@ -22,13 +21,13 @@ use PHPUnit\Framework;
  */
 final class InvalidColumnTest extends Framework\TestCase
 {
-    use Test\Util\Helper;
+    use Parser\Test\Util\Helper;
 
     public function testNotGreaterThanZeroReturnsInvalidColumn(): void
     {
         $value = self::faker()->numberBetween(-100, 0);
 
-        $exception = InvalidColumn::notGreaterThanZero($value);
+        $exception = Parser\InvalidColumn::notGreaterThanZero($value);
 
         $message = \sprintf(
             'Column %d must be greater than 0.',

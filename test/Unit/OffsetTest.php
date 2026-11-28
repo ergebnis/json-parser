@@ -13,8 +13,7 @@ declare(strict_types=1);
 
 namespace Ergebnis\Json\Parser\Test\Unit;
 
-use Ergebnis\Json\Parser\InvalidOffset;
-use Ergebnis\Json\Parser\Offset;
+use Ergebnis\Json\Parser;
 use PHPUnit\Framework;
 
 /**
@@ -29,9 +28,9 @@ final class OffsetTest extends Framework\TestCase
      */
     public function testFromIntThrowsInvalidOffsetWhenValueIsNegative(int $value): void
     {
-        $this->expectException(InvalidOffset::class);
+        $this->expectException(Parser\InvalidOffset::class);
 
-        Offset::fromInt($value);
+        Parser\Offset::fromInt($value);
     }
 
     /**
@@ -40,7 +39,7 @@ final class OffsetTest extends Framework\TestCase
      */
     public function testFromIntReturnsOffsetWhenValueIsNotNegative(int $value): void
     {
-        $offset = Offset::fromInt($value);
+        $offset = Parser\Offset::fromInt($value);
 
         self::assertSame($value, $offset->toInt());
     }

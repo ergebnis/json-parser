@@ -13,7 +13,7 @@ declare(strict_types=1);
 
 namespace Ergebnis\Json\Parser\Test\Unit;
 
-use Ergebnis\Json\Parser\NewLine;
+use Ergebnis\Json\Parser;
 use PHPUnit\Framework;
 
 /**
@@ -23,37 +23,37 @@ final class NewLineTest extends Framework\TestCase
 {
     public function testNoneReturnsNewLine(): void
     {
-        $newLine = NewLine::none();
+        $newLine = Parser\NewLine::none();
 
         self::assertSame('', $newLine->toString());
     }
 
     public function testLfReturnsNewLine(): void
     {
-        $newLine = NewLine::lf();
+        $newLine = Parser\NewLine::lf();
 
         self::assertSame("\n", $newLine->toString());
     }
 
     public function testCrLfReturnsNewLine(): void
     {
-        $newLine = NewLine::crLf();
+        $newLine = Parser\NewLine::crLf();
 
         self::assertSame("\r\n", $newLine->toString());
     }
 
     public function testEqualsReturnsFalseWhenValueIsDifferent(): void
     {
-        $one = NewLine::lf();
-        $two = NewLine::crLf();
+        $one = Parser\NewLine::lf();
+        $two = Parser\NewLine::crLf();
 
         self::assertFalse($one->equals($two));
     }
 
     public function testEqualsReturnsTrueWhenValueIsSame(): void
     {
-        $one = NewLine::lf();
-        $two = NewLine::lf();
+        $one = Parser\NewLine::lf();
+        $two = Parser\NewLine::lf();
 
         self::assertTrue($one->equals($two));
     }

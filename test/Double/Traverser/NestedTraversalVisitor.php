@@ -13,25 +13,24 @@ declare(strict_types=1);
 
 namespace Ergebnis\Json\Parser\Test\Double\Traverser;
 
-use Ergebnis\Json\Parser\Node;
-use Ergebnis\Json\Parser\Traverser;
+use Ergebnis\Json\Parser;
 
-final class NestedTraversalVisitor implements Traverser\Visitor
+final class NestedTraversalVisitor implements Parser\Traverser\Visitor
 {
     private string $jsonPointer;
-    private Node\Node $root;
-    private ?Traverser\Traverser $traverser = null;
+    private Parser\Node\Node $root;
+    private ?Parser\Traverser\Traverser $traverser = null;
     private bool $hasTraversedAgain = false;
 
     public function __construct(
         string $jsonPointer,
-        Node\Node $root
+        Parser\Node\Node $root
     ) {
         $this->jsonPointer = $jsonPointer;
         $this->root = $root;
     }
 
-    public function setTraverser(Traverser\Traverser $traverser): void
+    public function setTraverser(Parser\Traverser\Traverser $traverser): void
     {
         $this->traverser = $traverser;
     }
@@ -42,26 +41,26 @@ final class NestedTraversalVisitor implements Traverser\Visitor
     }
 
     public function enter(
-        Node\Node $node,
-        Traverser\Path $path
-    ): Traverser\EnterAction {
+        Parser\Node\Node $node,
+        Parser\Traverser\Path $path
+    ): Parser\Traverser\EnterAction {
         if (
             !$this->hasTraversedAgain
             && $path->toJsonPointer()->toJsonString() === $this->jsonPointer
-            && $this->traverser instanceof Traverser\Traverser
+            && $this->traverser instanceof Parser\Traverser\Traverser
         ) {
             $this->hasTraversedAgain = true;
 
             $this->traverser->traverse($this->root);
         }
 
-        return Traverser\EnterAction::keep();
+        return Parser\Traverser\EnterAction::keep();
     }
 
     public function leave(
-        Node\Node $node,
-        Traverser\Path $path
-    ): Traverser\LeaveAction {
-        return Traverser\LeaveAction::keep();
+        Parser\Node\Node $node,
+        Parser\Traverser\Path $path
+    ): Parser\Traverser\LeaveAction {
+        return Parser\Traverser\LeaveAction::keep();
     }
 }

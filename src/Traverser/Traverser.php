@@ -13,9 +13,7 @@ declare(strict_types=1);
 
 namespace Ergebnis\Json\Parser\Traverser;
 
-use Ergebnis\Json\Parser\CyclicNodeDetected;
-use Ergebnis\Json\Parser\Index;
-use Ergebnis\Json\Parser\Node;
+use Ergebnis\Json\Parser;
 
 final class Traverser
 {
@@ -25,7 +23,7 @@ final class Traverser
     private array $visitors;
 
     /**
-     * @var array<int, Node\ArrayNode|Node\ObjectNode>
+     * @var array<int, Parser\Node\ArrayNode|Parser\Node\ObjectNode>
      */
     private array $containers = [];
     private bool $removed = false;
@@ -35,7 +33,7 @@ final class Traverser
         $this->visitors = $visitors;
     }
 
-    public function traverse(Node\Node $node): Node\Node
+    public function traverse(Parser\Node\Node $node): Parser\Node\Node
     {
         $containers = $this->containers;
 
@@ -58,10 +56,10 @@ final class Traverser
      * @param array<int, Visitor> $visitors
      */
     private function traverseNode(
-        Node\Node $node,
+        Parser\Node\Node $node,
         Path $path,
         array $visitors
-    ): Node\Node {
+    ): Parser\Node\Node {
         $visitorsOfChildren = $visitors;
 
         foreach ($visitors as $key => $visitor) {
@@ -81,7 +79,7 @@ final class Traverser
 
             $replacement = $action->replacement();
 
-            if ($replacement instanceof Node\Node) {
+            if ($replacement instanceof Parser\Node\Node) {
                 $node = $replacement;
             }
 
@@ -91,7 +89,7 @@ final class Traverser
         }
 
         if ([] !== $visitorsOfChildren) {
-            if ($node instanceof Node\ArrayNode) {
+            if ($node instanceof Parser\Node\ArrayNode) {
                 $this->traverseElements(
                     $node,
                     $path,
@@ -99,7 +97,7 @@ final class Traverser
                 );
             }
 
-            if ($node instanceof Node\ObjectNode) {
+            if ($node instanceof Parser\Node\ObjectNode) {
                 $this->traverseProperties(
                     $node,
                     $path,
@@ -125,7 +123,7 @@ final class Traverser
 
             $replacement = $action->replacement();
 
-            if ($replacement instanceof Node\Node) {
+            if ($replacement instanceof Parser\Node\Node) {
                 $node = $replacement;
             }
         }
@@ -140,7 +138,7 @@ final class Traverser
         Path $path,
         Visitor $visitor
     ): void {
-        if (!$path->index() instanceof Index) {
+        if (!$path->index() instanceof Parser\Index) {
             throw RootNodeCanNotBeRemoved::by($visitor);
         }
 
@@ -150,17 +148,17 @@ final class Traverser
     /**
      * @param array<int, Visitor> $visitors
      *
-     * @throws CyclicNodeDetected
+     * @throws Parser\CyclicNodeDetected
      */
     private function traverseElements(
-        Node\ArrayNode $node,
+        Parser\Node\ArrayNode $node,
         Path $path,
         array $visitors
     ): void {
         $id = \spl_object_id($node);
 
         if (\array_key_exists($id, $this->containers)) {
-            throw CyclicNodeDetected::fromNode($node);
+            throw Parser\CyclicNodeDetected::fromNode($node);
         }
 
         $this->containers[$id] = $node;
@@ -168,7 +166,7 @@ final class Traverser
         $position = 0;
 
         while ($node->count() > $position) {
-            $index = Index::fromInt($position);
+            $index = Parser\Index::fromInt($position);
 
             $element = $this->traverseNode(
                 $node->elementAt($index),
@@ -198,17 +196,17 @@ final class Traverser
     /**
      * @param array<int, Visitor> $visitors
      *
-     * @throws CyclicNodeDetected
+     * @throws Parser\CyclicNodeDetected
      */
     private function traverseProperties(
-        Node\ObjectNode $node,
+        Parser\Node\ObjectNode $node,
         Path $path,
         array $visitors
     ): void {
         $id = \spl_object_id($node);
 
         if (\array_key_exists($id, $this->containers)) {
-            throw CyclicNodeDetected::fromNode($node);
+            throw Parser\CyclicNodeDetected::fromNode($node);
         }
 
         $this->containers[$id] = $node;
@@ -216,7 +214,7 @@ final class Traverser
         $position = 0;
 
         while ($node->count() > $position) {
-            $index = Index::fromInt($position);
+            $index = Parser\Index::fromInt($position);
             $property = $node->propertyAt($index);
 
             $value = $this->traverseNode(
@@ -239,7 +237,7 @@ final class Traverser
             if ($property->value() !== $value) {
                 $node->replacePropertyAt(
                     $index,
-                    Node\ObjectProperty::create(
+                    Parser\Node\ObjectProperty::create(
                         $property->name(),
                         $value,
                     ),

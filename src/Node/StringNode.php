@@ -13,8 +13,7 @@ declare(strict_types=1);
 
 namespace Ergebnis\Json\Parser\Node;
 
-use Ergebnis\Json\Parser\InvalidString;
-use Ergebnis\Json\Parser\Raw;
+use Ergebnis\Json\Parser;
 
 /**
  * @see https://datatracker.ietf.org/doc/html/rfc8259#section-7
@@ -66,9 +65,9 @@ final class StringNode implements Node
     }
 
     /**
-     * @throws InvalidString
+     * @throws Parser\InvalidString
      */
-    public static function fromRaw(Raw $raw): self
+    public static function fromRaw(Parser\Raw $raw): self
     {
         $value = $raw->toString();
 
@@ -90,7 +89,7 @@ final class StringNode implements Node
         );
 
         if (!\is_string($withoutEscapeSequences)) {
-            throw InvalidString::notValidJsonString($raw);
+            throw Parser\InvalidString::notValidJsonString($raw);
         }
 
         $length = \strlen($withoutEscapeSequences);
@@ -101,7 +100,7 @@ final class StringNode implements Node
             || '"' !== $withoutEscapeSequences[$length - 1]
             || $length - 2 !== \strcspn($withoutEscapeSequences, self::CHARACTERS_REQUIRING_ESCAPE, 1)
         ) {
-            throw InvalidString::notValidJsonString($raw);
+            throw Parser\InvalidString::notValidJsonString($raw);
         }
 
         return new self($value);
@@ -116,12 +115,12 @@ final class StringNode implements Node
     }
 
     /**
-     * @throws InvalidString
+     * @throws Parser\InvalidString
      */
     public static function fromString(string $value): self
     {
         if (1 !== \preg_match('//u', $value)) {
-            throw InvalidString::notValidUtf8($value);
+            throw Parser\InvalidString::notValidUtf8($value);
         }
 
         $escaped = \strtr(
@@ -138,7 +137,7 @@ final class StringNode implements Node
     }
 
     /**
-     * @throws InvalidString
+     * @throws Parser\InvalidString
      */
     public function toString(): string
     {
@@ -148,7 +147,7 @@ final class StringNode implements Node
          * json_decode() returns mixed; valid raw text always decodes to a string.
          */
         if (!\is_string($value)) {
-            throw InvalidString::notValidJsonString(Raw::fromString($this->raw));
+            throw Parser\InvalidString::notValidJsonString(Parser\Raw::fromString($this->raw));
         }
 
         return $value;

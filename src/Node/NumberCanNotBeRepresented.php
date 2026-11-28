@@ -13,9 +13,9 @@ declare(strict_types=1);
 
 namespace Ergebnis\Json\Parser\Node;
 
-use Ergebnis\Json\Parser\Exception;
+use Ergebnis\Json\Parser;
 
-final class NumberCanNotBeRepresented extends \RuntimeException implements Exception
+final class NumberCanNotBeRepresented extends \RuntimeException implements Parser\Exception
 {
     public static function asInt(NumberNode $node): self
     {

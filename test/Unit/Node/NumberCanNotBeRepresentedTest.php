@@ -13,8 +13,7 @@ declare(strict_types=1);
 
 namespace Ergebnis\Json\Parser\Test\Unit\Node;
 
-use Ergebnis\Json\Parser\Node;
-use Ergebnis\Json\Parser\Test;
+use Ergebnis\Json\Parser;
 use PHPUnit\Framework;
 
 /**
@@ -24,13 +23,13 @@ use PHPUnit\Framework;
  */
 final class NumberCanNotBeRepresentedTest extends Framework\TestCase
 {
-    use Test\Util\Helper;
+    use Parser\Test\Util\Helper;
 
     public function testAsIntReturnsNumberCanNotBeRepresented(): void
     {
-        $node = Node\NumberNode::fromFloat(self::faker()->randomFloat());
+        $node = Parser\Node\NumberNode::fromFloat(self::faker()->randomFloat());
 
-        $exception = Node\NumberCanNotBeRepresented::asInt($node);
+        $exception = Parser\Node\NumberCanNotBeRepresented::asInt($node);
 
         $message = \sprintf(
             '"%s" can not be represented as an int.',
@@ -42,9 +41,9 @@ final class NumberCanNotBeRepresentedTest extends Framework\TestCase
 
     public function testAsFloatReturnsNumberCanNotBeRepresented(): void
     {
-        $node = Node\NumberNode::fromFloat(self::faker()->randomFloat());
+        $node = Parser\Node\NumberNode::fromFloat(self::faker()->randomFloat());
 
-        $exception = Node\NumberCanNotBeRepresented::asFloat($node);
+        $exception = Parser\Node\NumberCanNotBeRepresented::asFloat($node);
 
         $message = \sprintf(
             '"%s" can not be represented as a float.',

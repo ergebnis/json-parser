@@ -13,22 +13,21 @@ declare(strict_types=1);
 
 namespace Ergebnis\Json\Parser\Test\Double\Traverser;
 
-use Ergebnis\Json\Parser\Node;
-use Ergebnis\Json\Parser\Traverser;
+use Ergebnis\Json\Parser;
 
-final class KeepingVisitor implements Traverser\Visitor
+final class KeepingVisitor implements Parser\Traverser\Visitor
 {
     public function enter(
-        Node\Node $node,
-        Traverser\Path $path
-    ): Traverser\EnterAction {
-        return Traverser\EnterAction::keep();
+        Parser\Node\Node $node,
+        Parser\Traverser\Path $path
+    ): Parser\Traverser\EnterAction {
+        return Parser\Traverser\EnterAction::keep();
     }
 
     public function leave(
-        Node\Node $node,
-        Traverser\Path $path
-    ): Traverser\LeaveAction {
-        return Traverser\LeaveAction::keep();
+        Parser\Node\Node $node,
+        Parser\Traverser\Path $path
+    ): Parser\Traverser\LeaveAction {
+        return Parser\Traverser\LeaveAction::keep();
     }
 }

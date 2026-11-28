@@ -13,15 +13,14 @@ declare(strict_types=1);
 
 namespace Ergebnis\Json\Parser\Traverser;
 
-use Ergebnis\Json\Parser\Index;
-use Ergebnis\Json\Parser\Node;
+use Ergebnis\Json\Parser;
 use Ergebnis\Json\Pointer;
 
 final class Path
 {
     private self $parent;
-    private ?Index $index = null;
-    private ?Node\StringNode $name = null;
+    private ?Parser\Index $index = null;
+    private ?Parser\Node\StringNode $name = null;
     private ?Pointer\JsonPointer $jsonPointer = null;
 
     private function __construct()
@@ -37,7 +36,7 @@ final class Path
         return $path;
     }
 
-    public function element(Index $index): self
+    public function element(Parser\Index $index): self
     {
         $path = new self();
 
@@ -48,8 +47,8 @@ final class Path
     }
 
     public function property(
-        Index $index,
-        Node\StringNode $name
+        Parser\Index $index,
+        Parser\Node\StringNode $name
     ): self {
         $path = new self();
 
@@ -60,12 +59,12 @@ final class Path
         return $path;
     }
 
-    public function index(): ?Index
+    public function index(): ?Parser\Index
     {
         return $this->index;
     }
 
-    public function name(): ?Node\StringNode
+    public function name(): ?Parser\Node\StringNode
     {
         return $this->name;
     }
@@ -84,11 +83,11 @@ final class Path
 
     private function createJsonPointer(): Pointer\JsonPointer
     {
-        if (!$this->index instanceof Index) {
+        if (!$this->index instanceof Parser\Index) {
             return Pointer\JsonPointer::document();
         }
 
-        if ($this->name instanceof Node\StringNode) {
+        if ($this->name instanceof Parser\Node\StringNode) {
             return $this->parent->toJsonPointer()->append(Pointer\ReferenceToken::fromString($this->name->toString()));
         }
 
